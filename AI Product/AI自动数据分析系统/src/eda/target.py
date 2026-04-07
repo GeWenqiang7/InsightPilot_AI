@@ -1,9 +1,8 @@
 #确认target feature
-#feature correlation
 
 import pandas as pd
 
-def resolve_target(df, target_config):
+def analyze_target(df, target_config):
     """
     支持三种target定义：
     1. 字符串列名
