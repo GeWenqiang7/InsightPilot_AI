@@ -1,0 +1,21 @@
+{
+  "high_missing": {},
+  "top_features": [],
+  "insights": [
+    {
+      "type": "skew",
+      "column": "Average_Order_Value",
+      "action": "log_transform"
+    },
+    {
+      "type": "skew",
+      "column": "Total_Spending",
+      "action": "log_transform"
+    },
+    {
+      "type": "outlier",
+      "column": "Average_Order_Value",
+      "action": "cap_or_remove"
+    }
+  ]
+}
