@@ -3,8 +3,8 @@
 # 作用：
 # 1. 读取数据
 # 2. 运行EDA Pipeline
-# 3. 处理JSON序列化问题
-# 4. 保存结果（给RAG/LLM用）
+# 3. 保存完整EDA（debug/RAG）
+# 4. 生成压缩EDA（LLM用）
 # =====================================
 
 import os
@@ -13,7 +13,10 @@ import pandas as pd
 
 from eda.pipeline import EDAPipeline
 
+
+# ================================
 # 1. JSON序列化工具
+# ================================
 def json_converter(o):
     import numpy as np
     import pandas as pd
@@ -21,6 +24,8 @@ def json_converter(o):
     if isinstance(o, (np.integer,)):
         return int(o)
     elif isinstance(o, (np.floating,)):
+        if pd.isna(o):
+            return None
         return float(o)
     elif isinstance(o, (np.ndarray,)):
         return o.tolist()
@@ -32,13 +37,12 @@ def json_converter(o):
         return str(o)
 
 
-# 2. 获取路径
+# ================================
+# 2. 路径
+# ================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# 项目根目录
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
-# 数据路径
 data_path = os.path.join(
     PROJECT_ROOT,
     "douyinshop_data",
@@ -49,28 +53,24 @@ print("📂 数据路径:", data_path)
 print("📂 是否存在:", os.path.exists(data_path))
 
 
+# ================================
 # 3. 读取数据
+# ================================
 df = pd.read_csv(data_path)
 
 print("✅ 数据加载成功")
 print("Shape:", df.shape)
 
 
-# 定义 target
-
-# ✅ 方式1：列名
+# ================================
+# 4. 定义 target
+# ================================
 target = "Total_Spending"
 
-# ✅ 方式2（可选）：表达式
-# target = "click / impression"
 
-# ✅ 方式3（可选）：函数
-# def my_target(df):
-#     return (df["revenue"] - df["cost"]) / df["cost"]
-# target = my_target
-
-
-# 跑EDA
+# ================================
+# 5. 跑EDA
+# ================================
 eda = EDAPipeline(df, target=target)
 result = eda.run()
 
@@ -78,28 +78,69 @@ print("\n🚀 EDA运行成功 ✅")
 print("模块输出：", result.keys())
 
 
-# 保存结果（RAG用）
-output_path = os.path.join(PROJECT_ROOT, "eda_result.json")
+# ================================
+# 6. 保存完整EDA（RAG/debug）
+# ================================
+full_path = os.path.join(PROJECT_ROOT, "eda_result.json")
 
-with open(output_path, "w") as f:
+with open(full_path, "w") as f:
     json.dump(result, f, indent=2, default=json_converter)
 
-print(f"\n💾 EDA结果已保存：{output_path}")
+print(f"\n💾 完整EDA已保存：{full_path}")
 
 
-# 压缩给LLM用
-
+# ================================
+# 7. 🔥 LLM压缩（核心升级）
+# ================================
 def compress_eda_for_llm(eda):
-    return {
-        "high_missing": {
-            k: v for k, v in eda["missing"].items()
-            if v["missing_rate"] > 0.2
-        },
-        "top_features": eda["correlation"].get("top_features", []),
-        "insights": eda["feature_insights"]
+
+    compressed = {
+        "meta": eda.get("meta", {}),
+        "features": {},
+        "high_missing": {},
+        "top_correlations": eda.get("correlation", {}).get("top_features", []),
+        "insights": eda.get("feature_insights", [])
     }
 
+    schema = eda.get("schema", {})
+    dist = eda.get("distribution", {})
+    missing = eda.get("missing", {})
 
+    for col, col_type in schema.items():
+
+        feature_info = {
+            "type": col_type
+        }
+
+        # =====================
+        # 数值特征（来自 distribution）
+        # =====================
+        if col in dist:
+            d = dist[col]
+
+            feature_info.update({
+                "mean": round(d.get("mean", 0), 3),
+                "std": round(d.get("std", 0), 3),
+                "skew": round(d.get("skew", 0), 3)
+            })
+
+        # =====================
+        # 缺失
+        # =====================
+        if col in missing:
+            miss_rate = missing[col].get("missing_rate", 0)
+            feature_info["missing"] = round(miss_rate, 3)
+
+            if miss_rate > 0.3:
+                compressed["high_missing"][col] = round(miss_rate, 3)
+
+        compressed["features"][col] = feature_info
+
+    return compressed
+
+# ================================
+# 8. 生成LLM输入
+# ================================
 eda_small = compress_eda_for_llm(result)
 
 llm_path = os.path.join(PROJECT_ROOT, "eda_for_llm.json")
