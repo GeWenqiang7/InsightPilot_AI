@@ -1,64 +1,146 @@
-import os
 import pandas as pd
+import numpy as np
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+class EDAPipeline:
 
-data_path = os.path.join(
-    BASE_DIR,
-    '..',
-    '..',
-    'douyinshop_data',
-    'user_personalized_features.csv'
-)
+    def __init__(self, df, target=None):
+        self.df = df
+        self.target = target
 
-df = pd.read_csv(data_path)
+    def run(self):
+        return {
+            "meta": self.meta_info(),
+            "schema": self.schema_info(),
+            "missing": self.missing_analysis(),
+            "distribution": self.distribution_analysis(),
+            "outliers": self.outlier_analysis(),
+            "correlation": self.correlation_analysis(),
+            "target_analysis": self.target_analysis(),
+            "feature_insights": self.feature_insights()
+        }
 
-df = df.drop(df.columns[:2], axis=1)
+    # =========================
+    # 1. Meta
+    # =========================
+    def meta_info(self):
+        return {
+            "rows": self.df.shape[0],
+            "cols": self.df.shape[1]
+        }
 
-#数据总体信息
-def auto_eda(df):
-    eda_result = {}
+    # =========================
+    # 2. Schema
+    # =========================
+    def schema_info(self):
+        return {
+            col: str(dtype)
+            for col, dtype in self.df.dtypes.items()
+        }
 
-    # 1. 基本信息
-    eda_result["shape"] = {
-        "rows": df.shape[0],
-        "cols": df.shape[1]
-    }
+    # =========================
+    # 3. Missing
+    # =========================
+    def missing_analysis(self):
+        return {
+            col: {
+                "missing_rate": round(self.df[col].isnull().mean(), 4),
+                "missing_flag": "high" if self.df[col].isnull().mean() > 0.3 else "low"
+            }
+            for col in self.df.columns
+        }
 
-    eda_result["columns"] = list(df.columns)
+    # =========================
+    # 4. Distribution
+    # =========================
+    def distribution_analysis(self):
+        result = {}
 
-    eda_result["dtypes"] = {
-        col: str(dtype) for col, dtype in df.dtypes.items()
-    }
+        for col in self.df.select_dtypes(include=np.number).columns:
+            result[col] = {
+                "mean": float(self.df[col].mean()),
+                "std": float(self.df[col].std()),
+                "skew": float(self.df[col].skew()),
+                "kurtosis": float(self.df[col].kurt())
+            }
 
-    # 2. 缺失率（比 count 更有用）
-    eda_result["missing_rate"] = {
-        col: round(df[col].isnull().mean(), 4)
-        for col in df.columns
-    }
+        return result
 
-    # 3. 数值统计（只选 numeric）
-    eda_result["describe"] = df.describe().to_dict()
+    # =========================
+    # 5. Outliers (IQR)
+    # =========================
+    def outlier_analysis(self):
+        result = {}
 
-    return eda_result
+        for col in self.df.select_dtypes(include=np.number).columns:
+            q1 = self.df[col].quantile(0.25)
+            q3 = self.df[col].quantile(0.75)
+            iqr = q3 - q1
 
-#检查缺失值
-def detect_problem(eda):
-    if "missing_rate" not in eda:
-        raise ValueError("输入不是EDA结果，请传入auto_eda输出")
+            lower = q1 - 1.5 * iqr
+            upper = q3 + 1.5 * iqr
 
-    issues = []
+            outliers = self.df[(self.df[col] < lower) | (self.df[col] > upper)]
 
-    for col, rate in eda["missing_rate"].items():
-        if rate > 0.3:
-            issues.append(f"{col} 缺失严重")
+            result[col] = {
+                "outlier_ratio": round(len(outliers) / len(self.df), 4)
+            }
 
-    return issues
+        return result
 
-if __name__ == "__main__":
-    result = auto_eda(df)
+    # =========================
+    # 6. Correlation
+    # =========================
+    def correlation_analysis(self):
+        corr = self.df.corr(numeric_only=True)
 
-    print(result)
+        return corr.to_dict()
 
-    print("\n问题检测：")
-    print(detect_problem(result))  
+    # =========================
+    # 7. Target Analysis
+    # =========================
+    def target_analysis(self):
+        if not self.target or self.target not in self.df.columns:
+            return {}
+
+        result = {}
+        for col in self.df.select_dtypes(include=np.number).columns:
+            if col != self.target:
+                result[col] = float(self.df[col].corr(self.df[self.target]))
+
+        return result
+
+    # =========================
+    # 8. Feature Insights（AI用）
+    # =========================
+    def feature_insights(self):
+        insights = []
+
+        # missing
+        for col, val in self.missing_analysis().items():
+            if val["missing_rate"] > 0.3:
+                insights.append({
+                    "type": "missing",
+                    "column": col,
+                    "severity": "high",
+                    "suggestion": "consider drop or imputation"
+                })
+
+        # skew
+        for col, val in self.distribution_analysis().items():
+            if abs(val["skew"]) > 1:
+                insights.append({
+                    "type": "skew",
+                    "column": col,
+                    "suggestion": "log transform recommended"
+                })
+
+        # outlier
+        for col, val in self.outlier_analysis().items():
+            if val["outlier_ratio"] > 0.05:
+                insights.append({
+                    "type": "outlier",
+                    "column": col,
+                    "suggestion": "consider capping or removal"
+                })
+
+        return insights
