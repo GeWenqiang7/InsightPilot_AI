@@ -44,20 +44,44 @@ Average_Order_Value: outlier ¡ú cap_or_remove
 
 ======================
 
-Your tasks:
+Your task:
+Generate a FEATURE ENGINEERING PLAN.
 
-1. Feature engineering suggestions
-2. Data cleaning recommendations
-3. Feature selection strategy
-4. Modeling approach
-
-Requirements:
-- Mention specific feature names
-- Identify skewed / high variance / high cardinality features
-- Suggest transformations (log, binning, encoding)
-- Detect useless features (e.g., IDs)
-- Highlight potential leakage
-- Output structured bullet points
+======================
 
 IMPORTANT:
-- Ignore index-like columns (e.g., Unnamed, IDs)
+
+Output ONLY valid JSON. Do NOT include explanation.
+
+Format:
+
+{
+  "drop_columns": [],
+  "feature_engineering": [
+    {
+      "column": "",
+      "action": "",
+      "params": {}
+    }
+  ],
+  "encoding": [
+    {
+      "column": "",
+      "method": ""
+    }
+  ],
+  "binning": [
+    {
+      "column": "",
+      "bins": []
+    }
+  ]
+}
+
+Rules:
+- Use exact column names
+- Ignore ID/index-like columns (e.g., Unnamed, User_ID)
+- Apply log transform for skewed features
+- Handle outliers if needed
+- Encode categorical features appropriately
+- Avoid data leakage

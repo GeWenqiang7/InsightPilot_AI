@@ -1,0 +1,64 @@
+{
+  "drop_columns": [
+    "Unnamed: 0.1",
+    "Unnamed: 0",
+    "User_ID"
+  ],
+  "feature_engineering": [
+    {
+      "column": "Average_Order_Value",
+      "action": "log_transform",
+      "params": {
+        "offset": 1
+      }
+    },
+    {
+      "column": "Total_Spending",
+      "action": "log_transform",
+      "params": {
+        "offset": 1
+      }
+    },
+    {
+      "column": "Average_Order_Value",
+      "action": "cap_outliers",
+      "params": {
+        "method": "percentile",
+        "lower_percentile": 1,
+        "upper_percentile": 99
+      }
+    }
+  ],
+  "encoding": [
+    {
+      "column": "Gender",
+      "method": "onehot"
+    },
+    {
+      "column": "Location",
+      "method": "onehot"
+    },
+    {
+      "column": "Interests",
+      "method": "onehot"
+    },
+    {
+      "column": "Product_Category_Preference",
+      "method": "onehot"
+    },
+    {
+      "column": "Newsletter_Subscription",
+      "method": "binary"
+    }
+  ],
+  "binning": [
+    {
+      "column": "Age",
+      "bins": [18, 25, 35, 45, 55, 65, 100]
+    },
+    {
+      "column": "Income",
+      "bins": [0, 30000, 60000, 90000, 120000, 1000000]
+    }
+  ]
+}

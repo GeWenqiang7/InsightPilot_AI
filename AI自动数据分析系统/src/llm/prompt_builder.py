@@ -1,9 +1,14 @@
+import os
+import json
+from openai import OpenAI
+
 class FeatureEngineeringPromptBuilder:
     
     def __init__(self, eda_result, target):
         self.eda = eda_result
         self.target = target
 
+#生成prompt
     def build(self):
 
         overview = self._build_overview()
@@ -34,27 +39,48 @@ Business goal:
 {insights}
 
 ======================
-
-Your tasks:
-
-1. Feature engineering suggestions
-2. Data cleaning recommendations
-3. Feature selection strategy
-4. Modeling approach
-
-Requirements:
-- Mention specific feature names
-- Identify skewed / high variance / high cardinality features
-- Suggest transformations (log, binning, encoding)
-- Detect useless features (e.g., IDs)
-- Highlight potential leakage
-- Output structured bullet points
+Your task:
+Generate an ADVANCED FEATURE ENGINEERING PLAN.
 
 IMPORTANT:
-- Ignore index-like columns (e.g., Unnamed, IDs)
+
+Output ONLY valid JSON.
+
+Format:
+
+{
+  "drop_columns": [],
+  "feature_engineering": [],
+  "encoding": [],
+  "binning": [],
+  "interaction": [],
+  "ratio": [],
+  "behavior": []
+}
+
+Definitions:
+
+- interaction: combine two features (e.g., A * B)
+- ratio: divide features (A / B)
+- behavior: user behavior signals (e.g., active user, high frequency)
+
+Rules:
+
+- Include interaction features if meaningful
+- Include ratio features for behavior modeling
+- Include segmentation features (e.g., active users)
+- Avoid only basic transformations
+- Use exact column names
+- Ignore ID/index-like columns (e.g., Unnamed, User_ID)
+- Apply log transform for skewed features
+- Handle outliers if needed
+- Encode categorical features appropriately
+- Avoid data leakage
 """
+
         return prompt
 
+# 生成给LLM的prompt
     def _build_overview(self):
         meta = self.eda.get("meta", {})
         return f"""
@@ -81,6 +107,7 @@ IMPORTANT:
 
         return "\n".join(lines)
 
+
     def _build_insights(self):
         lines = []
 
@@ -90,55 +117,71 @@ IMPORTANT:
             )
 
         return "\n".join(lines)
-    
-if __name__ == "__main__":
 
-    import json
-    import os
-    from openai import OpenAI
+
+# 保存并加载完整EDA.json结果
+if __name__ == "__main__":
 
     target = "Total_Spending"
 
-    # ========= 1. 读取EDA =========
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    file_path = os.path.join(BASE_DIR, "eda_for_llm.json")
+    eda_path = os.path.join(BASE_DIR, "eda_for_llm.json")
 
-    with open(file_path, "r") as f:
+    # ========= 1. 读取EDA =========
+    with open(eda_path, "r") as f:
         eda_result = json.load(f)
 
     print("✅ EDA加载成功")
 
-    # ========= 2. 构建Prompt =========
+    # 构建Prompt
     builder = FeatureEngineeringPromptBuilder(eda_result, target)
     prompt = builder.build()
 
-    # 保存prompt（debug用）
+    # 保存prompt
     prompt_path = os.path.join(BASE_DIR, "fe_prompt.txt")
     with open(prompt_path, "w") as f:
         f.write(prompt)
 
     print(f"🧠 Prompt已保存: {prompt_path}")
 
-    # ========= 3. 调用LLM =========
+    # 调用LLM 
     client = OpenAI()
 
     response = client.chat.completions.create(
         model="gpt-4.1",
         messages=[
             {"role": "user", "content": prompt}
-        ]
+        ],
+        temperature=0.2
     )
 
     result_text = response.choices[0].message.content
 
-    # ========= 4. 保存LLM输出 =========
-    output_path = os.path.join(BASE_DIR, "fe_suggestions.txt")
+    # 尝试解析JSON
+    try:
+        fe_plan = json.loads(result_text)
+        print("✅ JSON解析成功")
+    except:
+        print("⚠️ JSON解析失败，保存原始文本")
+        fe_plan = None
 
-    with open(output_path, "w") as f:
+    # 保存JSON
+    json_path = os.path.join(BASE_DIR, "fe_plan.json")
+
+    if fe_plan:
+        with open(json_path, "w") as f:
+            json.dump(fe_plan, f, indent=2)
+
+        print(f"🔥 FE Plan已保存: {json_path}")
+
+    # 保存fe执行计划json
+    txt_path = os.path.join(BASE_DIR, "fe_suggestions.txt")
+
+    with open(txt_path, "w") as f:
         f.write(result_text)
 
-    print(f"🚀 Feature Engineering建议已生成: {output_path}")
+    print(f"📄 原始建议已保存: {txt_path}")
 
-    # 终端打印
+    # 输出
     print("\n========== LLM OUTPUT ==========\n")
     print(result_text)
