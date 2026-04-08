@@ -1,366 +1,189 @@
-# 🧠 AI / LLM 学习计划 + 项目实践
+# 🤖 AI Data Analysis Agent System
+
+## 📌 Overview
+
+This project is an **agent-based automated data analysis system** powered by LLMs.
+
+It integrates:
+
+* 🧠 Agent decision-making
+* 🔄 LangGraph workflow orchestration
+* 🛠 Tool-based execution (EDA, Feature Engineering, Modeling)
+* 📚 RAG (Retrieval-Augmented Generation)
+* ⚙️ Function Calling for structured execution
+* 🚀 API + Docker deployment
+
+The system can automatically:
+
+* Understand datasets
+* Generate feature engineering strategies
+* Train and evaluate models
+* Iterate and optimize results
 
 ---
 
-# 🗺️ 升级版学习路径（Advanced Roadmap）
+## 🧱 System Architecture
 
-```text
-阶段1：API调用 & Chat工具
-阶段2：Prompt Engineering
-阶段3：AI工具开发（SQL / Code / 文本）
-阶段4：数据 + LLM（Copilot）
-阶段5：RAG（知识增强）
-阶段6：Transformer基础（理解模型）
-阶段7：多Agent系统（复杂任务）
-阶段8：微调 / 量化 / 私有化部署
-阶段9：多模态（图像/语音/视频）
+```
+User Query
+   ↓
+LLM Agent (Decision Layer)
+   ↓
+Tool Execution (EDA / FE / Model / RAG)
+   ↓
+State Memory (LangGraph)
+   ↓
+Iteration Loop
+   ↓
+Final Report
 ```
 
 ---
 
-# 🚀 专题1：Transformer（模型基础）
+## 🔑 Key Features
 
-## 🧠 是什么？
+### 1. Agent-based Workflow
 
-> Transformer 是大语言模型（GPT、DeepSeek等）的核心架构
+* LLM dynamically decides next actions
+* Supports multi-step reasoning and iteration
 
-核心机制：
+### 2. Tool Modularization
 
-* Self-Attention（自注意力）
-* Token序列建模
+* EDA Tool
+* Feature Engineering Tool
+* Model Training Tool
+* Evaluation Tool
 
----
+### 3. LangGraph Integration
 
-## ⚙️ 功能
+* State-driven workflow
+* Scalable pipeline orchestration
 
-* 理解上下文
-* 生成文本
-* 长距离依赖建模
+### 4. Function Calling
 
----
+* Structured tool invocation
+* Reliable JSON outputs
 
-## 🧪 如何运用？
+### 5. RAG (Knowledge Augmentation)
 
-👉 不需要自己训练，但要理解：
+* Retrieves domain knowledge
+* Enhances feature engineering and modeling decisions
 
-* token是如何输入的
-* context window（上下文长度）
-* attention影响输出质量
+### 6. Iterative Optimization
 
----
-
-## 💼 产品价值
-
-* 优化Prompt（减少token浪费）
-* 理解为什么模型“幻觉”
-* 控制成本（token优化）
+* Model → Evaluate → Improve loop
 
 ---
 
-# 🚀 专题2：RAG（Retrieval-Augmented Generation）
+## 📁 Project Structure
 
-## 🧠 是什么？
-
-> **让LLM“查资料再回答”**
-
-```text
-用户问题
-→ 检索知识库
-→ 拼接到Prompt
-→ LLM回答
+```
+src/
+ ├── agent/        # decision logic
+ ├── tools/        # execution modules
+ ├── rag/          # retrieval system
+ ├── graph/        # workflow orchestration
+ ├── llm/          # LLM interface
+ └── eda/          # EDA pipeline
 ```
 
 ---
 
-## ⚙️ 功能
+## ⚙️ How It Works
 
-* 解决“幻觉”
-* 使用私有数据
-* 实时更新知识
+### Step 1: EDA
+
+Analyze dataset structure, distribution, missing values, and outliers.
+
+### Step 2: Feature Engineering
+
+Generate transformation plans using LLM.
+
+### Step 3: Model Training
+
+Train predictive models (Logistic Regression / XGBoost).
+
+### Step 4: Evaluation
+
+Evaluate performance and metrics.
+
+### Step 5: Iteration (Agent Loop)
+
+Agent decides whether to:
+
+* Improve features
+* Change model
+* Stop
 
 ---
 
-## 🧪 如何实现？
+## 📚 RAG Integration
 
-技术栈：
+The system retrieves relevant knowledge such as:
 
-```text
-Embedding + 向量数据库 + LLM
+* Feature engineering best practices
+* Outlier handling techniques
+* Model selection strategies
+
+---
+
+## 🚀 Deployment
+
+### Run locally
+
+```
+python app/api.py
 ```
 
-流程：
+### Docker
 
-1. 文档 → embedding
-2. 存入向量库（FAISS / Pinecone）
-3. 查询时检索相关内容
-4. 拼接到prompt
-
----
-
-## 💼 产品价值
-
-* 企业知识问答系统
-* 文档助手（PDF / Excel）
-* 客服机器人
-
----
-
-# 🚀 专题3：多Agent系统（Multi-Agent）
-
-## 🧠 是什么？
-
-> 多个AI“角色”协作完成任务
-
----
-
-## ⚙️ 功能
-
-* 分工协作
-* 复杂任务拆解
-* 提高稳定性
-
----
-
-## 🧪 示例
-
-```text
-Agent1：需求分析
-Agent2：SQL生成
-Agent3：数据分析
-Agent4：报告输出
+```
+docker build -t ai-agent .
+docker run -p 8000:8000 ai-agent
 ```
 
 ---
 
-## 💼 产品价值
+## 🧪 Example Output
 
-* 自动数据分析系统
-* AI产品经理助手
-* 自动代码开发系统
-
----
-
-# 🚀 专题4：微调（Fine-tuning）
-
-## 🧠 是什么？
-
-> 用你的数据“重新训练模型的一部分”
+* EDA summary
+* Feature engineering plan (JSON)
+* Model performance report
+* Final insights
 
 ---
 
-## ⚙️ 功能
+## 🎯 Use Cases
 
-* 让模型更懂你的业务
-* 固定输出风格
-* 提升准确性
-
----
-
-## 🧪 如何做？
-
-```text
-数据（input → output）
-→ 训练
-→ 得到定制模型
-```
+* Automated data analysis
+* Feature engineering assistant
+* Model prototyping
+* Data science workflow automation
 
 ---
 
-## 💼 产品价值
+## 🧠 Tech Stack
 
-* 金融风控模型（你方向）
-* 医疗数据分析
-* 企业内部模型
-
----
-
-# 🚀 专题5：量化（Quantization）
-
-## 🧠 是什么？
-
-> 压缩模型，让它更小、更快
+* Python
+* OpenAI API
+* LangGraph
+* FAISS / Vector DB
+* FastAPI
+* Docker
 
 ---
 
-## ⚙️ 功能
+## 💡 Future Work
 
-* 降低显存占用
-* 提升推理速度
-* 降低成本
-
----
-
-## 🧪 技术点
-
-* 8-bit / 4-bit
-* GGUF / GPTQ
+* Multi-agent collaboration
+* AutoML integration
+* UI dashboard
+* Real-time data pipeline
 
 ---
 
-## 💼 产品价值
+## 👤 Author
 
-* 本地运行LLM
-* 边缘设备部署
-* 降低服务器成本
+Wenqiang Ge
 
 ---
-
-# 🚀 专题6：私有化部署（Private Deployment）
-
-## 🧠 是什么？
-
-> 在自己服务器上运行模型（不用外部API）
-
----
-
-## ⚙️ 功能
-
-* 数据安全
-* 可控性强
-* 无API费用
-
----
-
-## 🧪 技术栈
-
-```text
-Ollama / vLLM / HuggingFace
-Docker / GPU
-```
-
----
-
-## 💼 产品价值
-
-* 金融 / 医疗（强隐私）
-* 企业内部AI系统
-* 大规模部署
-
----
-
-# 🚀 专题7：多模态（Multimodal）
-
-## 🧠 是什么？
-
-> 模型不仅处理文本，还能处理：
-
-* 图片
-* 语音
-* 视频
-
----
-
-## ⚙️ 功能
-
-* 图像理解
-* OCR
-* 语音对话
-
----
-
-## 🧪 示例
-
-```text
-输入：图表截图
-输出：数据分析结论
-```
-
----
-
-## 💼 产品价值
-
-* BI自动分析图表
-* 发票识别（金融）
-* 医疗影像分析
-
----
-
-# 🔥 综合项目路径（非常关键）
-
----
-
-## 🥇 项目1（基础）
-
-👉 AI Chat Tool
-
-* API调用
-* Prompt
-
----
-
-## 🥈 项目2（进阶）
-
-👉 AI Data Copilot
-
-* SQL生成
-* 数据分析
-
----
-
-## 🥉 项目3（核心）
-
-👉 RAG 文档分析系统
-
-* PDF / Excel问答
-
----
-
-## 🏆 项目4（高阶）
-
-👉 Multi-Agent 数据分析系统
-
-* 自动分析 → 报告生成
-
----
-
-## 🚀 项目5（企业级）
-
-👉 私有化AI分析平台
-
-* 本地模型 + RAG + Agent
-
----
-
-# 🧠 技术体系总结
-
-```text
-应用层：Prompt / API / 工具
-增强层：RAG / Agent
-模型层：Transformer / 微调 / 量化
-部署层：私有化 / 多模态
-```
-
----
-
-# 🎯 学习优先级（非常重要）
-
-## ✅ 必学（短期）
-
-* API调用
-* Prompt Engineering
-* RAG
-
----
-
-## 🔥 高价值（中期）
-
-* Agent（LangGraph）
-* 数据 + LLM
-
----
-
-## 🚀 进阶（长期）
-
-* 微调
-* 量化
-* 私有化部署
-* 多模态
-
----
-
-# 🎯 一句话总结
-
-> 你的目标不是“学会模型”，而是：
->
-> 👉 **用 LLM + 数据 + 系统设计能力，构建可落地的AI产品**
-
