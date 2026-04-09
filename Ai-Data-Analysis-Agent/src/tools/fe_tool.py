@@ -15,85 +15,83 @@ state["fe_plan"]
 - 没有 schema 校验，不保证字段完整，
 '''
 
+'''
+FE TOOL（升级版）
+
+能力：
+1. 基于EDA生成特征工程方案
+2. 支持 problem_type（任务驱动）
+3. 支持 model_candidates（模型驱动）
+4. 输出结构化 JSON（可执行）
+'''
+
 import os
 import json
-from openai import OpenAI
 import re
-import json
+from openai import OpenAI
 
 client = OpenAI()
 
-# 设计Prompt
-def build_prompt(eda, target):
+
+# =========================
+# Prompt（🔥升级版）
+# =========================
+def build_prompt(eda, target, problem_type, model_candidates):
 
     return f"""
 You are a senior data scientist and machine learning expert.
-
-Your goal is to analyze the dataset and generate a GENERALIZED and ROBUST data science plan.
 
 ========================
 [CONTEXT]
 ========================
 
+Problem Type: {problem_type}
 Target variable: {target}
 
 EDA summary:
 {json.dumps(eda, indent=2)}
 
+Model Candidates:
+{json.dumps(model_candidates, indent=2)}
+
 ========================
 [TASK REQUIREMENTS]
 ========================
 
-You must:
+You must generate a PRACTICAL feature engineering plan.
 
-1. Understand the problem type:
-   - classification (e.g. CTR prediction)
-   - regression (e.g. spending prediction)
-   - clustering (user segmentation)
-   - ranking / recommendation
+1. Adapt to problem type:
+
+- classification:
+  handle imbalance, encoding, feature selection
+
+- regression:
+  handle skewness, scaling, continuous features
+
+- clustering:
+  no target, focus on scaling and dimensionality reduction
 
 2. Identify data issues:
    - missing values
    - skewness
    - outliers
-   - high cardinality categorical features
-   - feature imbalance
-   - potential leakage
 
-3. Propose feature engineering strategies:
-   - transformations (log, scaling, normalization)
-   - encoding (one-hot, target encoding, embedding)
+3. Propose feature engineering:
+   - transformations (log, scaling)
+   - encoding
    - feature construction
-   - behavioral features (if applicable)
-   - temporal features (if applicable)
 
-4. Propose feature interactions:
-   - cross features
-   - aggregations
-   - user-item interactions (if applicable)
-
-5. Propose feature selection:
-   - drop useless features
-   - keep important features
-   - reduce dimensionality if needed
-
-6. Suggest suitable model types (for future use):
-   - tree-based models
-   - linear models
-   - deep learning
-   - recommendation models
-
-7. Ensure robustness:
-   - suggestions must generalize to different datasets
-   - avoid overfitting-specific tricks
-   - prefer scalable methods
+4. Align with model_candidates:
+   - tree models → no strict scaling
+   - linear models → scaling required
+   - neural networks → normalization
 
 ========================
 [OUTPUT FORMAT - STRICT JSON ONLY]
 ========================
 
 {{
-  "problem_type": "...",
+  "problem_type": "{problem_type}",
 
   "data_issues": [
     {{
@@ -113,25 +111,16 @@ You must:
     }}
   ],
 
-  "feature_interactions": [
-    {{
-      "columns": ["...", "..."],
-      "method": "...",
-      "reason": "..."
-    }}
-  ],
-
   "feature_selection": {{
     "drop": [],
     "keep": [],
-    "method": "optional explanation"
+    "method": "..."
   }},
 
-  "model_suggestions": [
+  "model_alignment": [
     {{
       "model": "...",
-      "reason": "...",
-      "suitable_for": "..."
+      "strategy": "..."
     }}
   ]
 }}
@@ -143,13 +132,13 @@ You must:
 - Output ONLY valid JSON
 - No explanation outside JSON
 - No markdown
-- No ```json
 - Ensure fields are always present
-- Be consistent and structured
 """
 
 
+# =========================
 # 调用 LLM
+# =========================
 def call_llm(prompt):
 
     response = client.chat.completions.create(
@@ -164,63 +153,74 @@ def call_llm(prompt):
     return response.choices[0].message.content
 
 
-# 解析 JSON（防崩）
+# =========================
+# JSON解析（防崩）
+# =========================
 def parse_response(text):
 
     try:
-        # 去掉 ```json ``` 包裹
         text = text.strip()
 
         if "```" in text:
             text = re.sub(r"```json", "", text)
             text = re.sub(r"```", "", text)
 
-        # 提取第一个 JSON
         match = re.search(r"\{.*\}", text, re.DOTALL)
 
         if match:
-            json_str = match.group()
-            return json.loads(json_str)
+            return json.loads(match.group())
 
-        # fallback
         return {
-            "raw_text": text,
-            "features": []
+            "raw_text": text
         }
 
     except Exception as e:
         return {
             "error": str(e),
-            "raw_text": text,
-            "features": []
+            "raw_text": text
         }
 
 
-# FE TOOL
+# =========================
+# FE TOOL 主入口
+# =========================
 def run(state):
 
     print("🚀 [FE TOOL] Running...")
 
     eda = state["eda_for_llm"]
-    target = state["target"]
+    target = state.get("target")
+    problem_type = state.get("problem_type")
+    model_candidates = state.get("model_candidates", [])
 
     base_dir = state.get("output_dir", "output")
     fe_dir = os.path.join(base_dir, "fe")
 
     os.makedirs(fe_dir, exist_ok=True)
 
-  
-    # 1. 构建 Prompt
-    prompt = build_prompt(eda, target)
+    # =========================
+    # 1️⃣ 构建 Prompt
+    # =========================
+    prompt = build_prompt(
+        eda,
+        target,
+        problem_type,
+        model_candidates
+    )
 
-    # 2. 调用 LLM
+    # =========================
+    # 2️⃣ 调用 LLM
+    # =========================
     response_text = call_llm(prompt)
 
-    # 3. 解析 JSON
+    # =========================
+    # 3️⃣ 解析 JSON
+    # =========================
     fe_plan = parse_response(response_text)
 
-
-    # 4. 保存
+    # =========================
+    # 4️⃣ 保存结果
+    # =========================
     fe_path = os.path.join(fe_dir, "fe_plan.json")
 
     with open(fe_path, "w") as f:
@@ -228,8 +228,9 @@ def run(state):
 
     print(f"✅ FE plan saved to: {fe_path}")
 
-
-    # 5. 更新 state
+    # =========================
+    # 5️⃣ 更新 state
+    # =========================
     state["fe_plan"] = fe_plan
     state["fe_path"] = fe_path
 
