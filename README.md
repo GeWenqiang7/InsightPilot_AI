@@ -112,7 +112,7 @@ User → LLM → Agent → Tools → Output
 ------------------------------------------------------------------------
 
 ## 6. 📁 Project Structure
-
+```bash
 ai-data-analysis-agent/
 │
 ├── src/
@@ -156,17 +156,17 @@ ai-data-analysis-agent/
 │   │   ├── prompt.py              # prompt模板
 │   │   └── parser.py              # JSON解析
 │   
-|   ├── knowledge/                    #（RAG核心）
-│   |   ├── retriever.py             # 🔎 检索相关知识
-│   |   ├── embedder.py              # 📐 生成embedding
-│   |   ├── knowledge_base/          # 📚 知识存储
-│   │   |   ├── fe_rules.txt
-│   │   |   ├── model_selection.txt
-│   │   |   ├── eda_guidelines.txt
-│   │   |   └── business_cases/
+│   ├── knowledge/                    #（RAG核心）
+│   │   ├── retriever.py             # 🔎 检索相关知识
+│   │   ├── embedder.py              # 📐 生成embedding
+│   │   ├── knowledge_base/          # 📚 知识存储
+│   │   │   ├── fe_rules.txt
+│   │   │   ├── model_selection.txt
+│   │   │   ├── eda_guidelines.txt
+│   │   │   └── business_cases/
 │   │
 │   └── knowledge_manager.py     # 🧠 管理检索逻辑（统一入口）
-|
+│
 │   └── utils/                     # 🔧 工具函数
 │       ├── io.py
 │       └── logger.py
@@ -193,7 +193,7 @@ ai-data-analysis-agent/
 │
 ├── README.md
 └── requirements.txt
-    
+```    
 ------------------------------------------------------------------------
 
 ## 7. Execution
