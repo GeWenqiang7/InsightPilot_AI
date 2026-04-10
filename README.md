@@ -113,11 +113,87 @@ User → LLM → Agent → Tools → Output
 
 ## 6. 📁 Project Structure
 
-src/ ├── agent/ \# Agent决策逻辑 ├── tools/ \# EDA / FE / Model / Eval
-├── eda/ \# 数据分析模块 ├── llm/ \# Prompt & API ├── graph/ \#
-LangGraph workflow ├── rag/ \# 知识增强 ├── output/ \# 输出结果 └── app/
-\# API入口
-
+ai-data-analysis-agent/
+│
+├── src/
+│
+│   ├── core/                      # ⭐ 系统主流程（唯一主线）
+│   │   └── pipeline.py            # orchestrator（串所有步骤）
+│
+│   ├── input/                     # 📥 用户输入处理
+│   │   ├── data_loader.py         # 读取数据（csv/path）
+│   │   └── query_parser.py        # 解析用户需求（自然语言）
+│
+│   ├── goal/                      # 🎯 核心模块（系统大脑）
+│   │   ├── goal_generator.py      # 生成候选分析目标（LLM）
+│   │   ├── goal_selector.py       # 用户选择 / refine
+│   │   └── goal_schema.py         # goal结构定义（标准化）
+│
+│   ├── eda/                       # 📊 数据理解
+│   │   ├── eda_runner.py          # 统一EDA入口（调用你现有pipeline）
+│   │   ├── missing.py
+│   │   ├── distribution.py
+│   │   ├── outlier.py
+│   │   ├── correlation.py
+│   │   └── insights.py
+│
+│   ├── feature_engineering/       # 🧪 特征工程
+│   │   ├── fe_generator.py        # LLM生成FE plan
+│   │   ├── fe_executor.py         # 执行FE
+│   │   └── fe_schema.py           # 定义FE JSON结构
+│
+│   ├── modeling/                  # 🤖 建模
+│   │   ├── model_selector.py      # 根据goal选模型
+│   │   ├── trainer.py             # 训练模型
+│   │   └── evaluator.py           # 评估模型
+│
+│   ├── reporting/                 # 📄 输出结果
+│   │   ├── notebook_generator.py  # 生成.ipynb
+│   │   └── report_generator.py    # 生成PDF报告
+│
+│   ├── llm/                       # 🤖 LLM工具层（纯工具）
+│   │   ├── client.py              # API调用
+│   │   ├── prompt.py              # prompt模板
+│   │   └── parser.py              # JSON解析
+│   
+|   ├── knowledge/                    #（RAG核心）
+│   |   ├── retriever.py             # 🔎 检索相关知识
+│   |   ├── embedder.py              # 📐 生成embedding
+│   |   ├── knowledge_base/          # 📚 知识存储
+│   │   |   ├── fe_rules.txt
+│   │   |   ├── model_selection.txt
+│   │   |   ├── eda_guidelines.txt
+│   │   |   └── business_cases/
+│   │
+│   └── knowledge_manager.py     # 🧠 管理检索逻辑（统一入口）
+|
+│   └── utils/                     # 🔧 工具函数
+│       ├── io.py
+│       └── logger.py
+│
+├── scripts/                       # 🧪 调试入口（必须）
+│   ├── run_pipeline.py
+│   ├── run_eda.py
+│   ├── run_goal.py
+│   └── playground.py
+│
+├── data/
+│   ├── raw/
+│   └── processed/
+│
+├── output/
+│   ├── eda/
+│   ├── fe/
+│   ├── model/
+│   └── report/
+│
+├── app/
+│   ├── cli.py                    # 用户交互入口（核心）
+│   └── api.py
+│
+├── README.md
+└── requirements.txt
+    
 ------------------------------------------------------------------------
 
 ## 7. Execution
