@@ -1,0 +1,61 @@
+## EDA Guidelines (Exploratory Data Analysis)
+
+### 1. First Look
+- Always print shape: df.shape → (rows, cols)
+- Always print dtypes: df.dtypes
+- Always print df.head(10) and df.tail(5)
+- Always print df.describe(include='all') for statistical summary
+- Check for duplicate rows: df.duplicated().sum()
+
+### 2. Missing Values
+- Always check missing values: df.isnull().sum() / df.isnull().mean() * 100
+- Visualize missing pattern: use missingno library (msno.matrix, msno.heatmap)
+- If missing > 50% in a column → consider dropping
+- If missing 10-50% → flag for imputation strategy
+- If missing < 10% → simple imputation usually safe
+- Check if missing is MCAR / MAR / MNAR before deciding strategy
+
+### 3. Outlier Detection
+- Numerical: use IQR method → Q1 - 1.5*IQR, Q3 + 1.5*IQR
+- Numerical: use Z-score method → |z| > 3 is outlier
+- Visual: boxplot, violin plot per feature
+- Multivariate: Isolation Forest for anomaly detection in high dimensions
+- Always ask: is the outlier an error or a real extreme value?
+
+### 4. Distribution Analysis
+- Plot histogram for every numerical feature
+- Plot KDE (kernel density estimate) overlaid on histogram
+- Check skewness: df.skew() → if |skew| > 1, highly skewed
+- Check kurtosis: df.kurtosis() → high kurtosis = heavy tails
+- For categorical: plot value_counts() bar chart, check cardinality
+
+### 5. Correlation & Feature Selection
+- Pearson correlation: df.corr() for linear relationships
+- Spearman correlation: for monotonic/non-linear relationships
+- Use heatmap (seaborn) to visualize correlation matrix
+- Flag multicollinearity: if |corr| > 0.85 between two features → consider dropping one
+- Use VIF (Variance Inflation Factor) for regression tasks → VIF > 10 = problematic
+- Mutual information score for feature importance (model-free)
+
+### 6. Target Variable Analysis
+- Always analyze target distribution first
+- For classification: check class imbalance → use value_counts(normalize=True)
+- If imbalance ratio > 10:1 → flag for SMOTE, class_weight, or resampling
+- For regression: check if target is normally distributed
+- Plot feature vs target scatter / boxplot to identify key predictors early
+
+### 7. Time Series EDA (if applicable)
+- Check if datetime index is sorted and complete
+- Detect frequency: daily, weekly, monthly
+- Plot rolling mean and rolling std to detect trend and seasonality
+- Check for stationarity: ADF test (statsmodels.adfuller)
+- Plot ACF and PACF to identify AR/MA components
+
+### 8. EDA Report Checklist
+- [ ] Shape and dtypes reviewed
+- [ ] Missing values quantified and visualized
+- [ ] Outliers detected and documented
+- [ ] Distribution of each feature analyzed
+- [ ] Correlation matrix computed
+- [ ] Target variable analyzed
+- [ ] Key insights documented before modeling

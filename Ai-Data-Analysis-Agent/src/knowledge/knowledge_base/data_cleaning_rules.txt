@@ -1,0 +1,59 @@
+## Data Cleaning Rules
+
+### 1. Data Loading & Schema Validation
+- Always specify dtypes on load when possible: pd.read_csv(dtypes={...})
+- Check column names for spaces/special chars → df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
+- Validate expected columns exist: assert set(expected_cols).issubset(df.columns)
+- Check row count against expected range
+- Log initial shape, log final shape after each major cleaning step
+
+### 2. Duplicate Handling
+- Check exact duplicates: df.duplicated().sum()
+- Check key-level duplicates: df.duplicated(subset=['id']).sum()
+- Strategy: drop_duplicates(keep='first') for exact duplicates
+- For key duplicates: investigate source → may need aggregation not dropping
+- Always log how many duplicates were removed
+
+### 3. Data Type Fixing
+- Convert strings to numbers: pd.to_numeric(col, errors='coerce') → NaN for invalid
+- Convert to datetime: pd.to_datetime(col, errors='coerce', format='...')
+- Fix boolean columns stored as object ('Yes'/'No' → True/False)
+- Downcast numeric types to save memory: pd.to_numeric(col, downcast='integer')
+- Convert low-cardinality string columns to Categorical: df[col].astype('category')
+
+### 4. String Cleaning
+- Strip whitespace: df[col].str.strip()
+- Lowercase: df[col].str.lower()
+- Remove special characters: df[col].str.replace(r'[^a-zA-Z0-9]', '', regex=True)
+- Standardize phone numbers, postal codes, IDs with regex
+- Fix encoding issues: df[col].str.encode('utf-8').str.decode('utf-8', errors='ignore')
+
+### 5. Range & Constraint Validation
+- Check age column: assert df['age'].between(0, 120).all()
+- Check percentage columns: assert df['rate'].between(0, 1).all() or 0-100
+- Check negative values in columns that should be positive (revenue, count)
+- Date range check: no future dates where not expected, no dates before plausible min
+- Document and log all constraint violations found
+
+### 6. Consistency Checks
+- Check referential integrity (foreign keys): IDs in table A must exist in table B
+- Check derived column consistency: total = sum of parts
+- Check categorical consistency: standardize variants ('NY', 'New York', 'new york' → 'New York')
+- Use fuzzy matching (fuzzywuzzy / rapidfuzz) for inconsistent categoricals
+
+### 7. Outlier Treatment (after EDA)
+- Cap instead of remove when outliers are valid extreme values: clip(lower=q01, upper=q99)
+- Remove if confirmed data entry error
+- Flag outlier rows with binary column (is_outlier=1) instead of removing
+- Always document number of outliers treated and method used
+
+### 8. Data Cleaning Checklist
+- [ ] Schema validated (columns, dtypes)
+- [ ] Duplicates identified and handled
+- [ ] Data types corrected
+- [ ] String fields standardized
+- [ ] Constraint violations logged
+- [ ] Consistency checks passed
+- [ ] Outliers documented and treated
+- [ ] Cleaning steps are reproducible (code in pipeline, not manual)
+- [ ] Final df.info() and df.describe() reviewed after cleaning

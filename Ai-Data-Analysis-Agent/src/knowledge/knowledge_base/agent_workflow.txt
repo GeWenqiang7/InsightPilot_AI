@@ -1,0 +1,73 @@
+## Agent Workflow Orchestration Rules
+
+### 1. Standard Pipeline Order
+1. Data Ingestion → validate schema, log row count
+2. Data Cleaning → fix types, remove duplicates, handle constraints
+3. EDA → distributions, missing, correlation, target analysis
+4. Feature Engineering → transform, encode, select
+5. Model Training → baseline → candidate models → hyperparameter tuning
+6. Evaluation → cross-validation, test set, metric report
+7. Interpretation → SHAP, feature importance
+8. Deployment → pipeline export, API serving
+9. Monitoring → drift detection, performance tracking
+
+### 2. Decision Gates (Agent must check before proceeding)
+- After Data Loading: if row count < 100 → STOP, warn user about insufficient data
+- After EDA: if missing > 80% in target column → STOP, cannot train
+- After EDA: if only 1 class in target → STOP, not a valid ML problem
+- After Feature Engineering: if final feature count = 0 → STOP, review FE steps
+- After Training: if best model < baseline + 1% → WARN user, suggest more EDA
+- After Evaluation: if train-test gap > 10% → WARN about overfitting
+
+### 3. Logging Standards
+- Log at every major step: timestamp, step name, input shape, output shape
+- Log decisions made: which imputation strategy, which model selected, why
+- Log all metric scores (train, val, test)
+- Log any warnings or anomalies detected
+- Format: [TIMESTAMP] [STEP] [STATUS] message
+
+### 4. Error Handling
+- Wrap each step in try/except
+- On failure: log error + stack trace + input state
+- Retry transient errors (I/O, API) up to 3 times with backoff
+- On unrecoverable error: save checkpoint of completed steps, report to user
+- Never silently swallow errors
+
+### 5. Checkpointing
+- Save intermediate results after each major step
+- Save cleaned dataframe: df_clean.parquet
+- Save engineered features: df_features.parquet
+- Save trained model: model_pipeline_v{version}.pkl
+- Save evaluation report: evaluation_report.json
+- Allow pipeline to resume from checkpoint if interrupted
+
+### 6. Config-Driven Execution
+- All parameters in config file (YAML or JSON): target column, feature list, model type, hyperparams
+- Agent reads config at start → no hardcoded values in pipeline code
+- Config versioned alongside model artifacts
+- Allow user to override any config parameter at runtime
+
+### 7. Multi-Model Comparison
+- Always train 3+ models and compare
+- Log all model scores in comparison table
+- Select best model by: primary metric (user-defined) + inference speed
+- Document second-best model as fallback option
+
+### 8. Report Generation
+- After pipeline completion, auto-generate summary report including:
+  → Dataset summary (rows, cols, missing rates)
+  → EDA key findings
+  → Feature engineering steps applied
+  → Model comparison table
+  → Best model performance on test set
+  → SHAP top-10 feature importances
+  → Recommendations for improvement
+- Export report as HTML or PDF
+
+### 9. Agent Self-Evaluation
+- After each analysis, agent should reflect:
+  → "Did I check for data leakage?"
+  → "Did I use correct metric for this problem?"
+  → "Is the train/test split representative?"
+  → "Did I document all assumptions?"
+  → "Are my conclusions supported by the data?"

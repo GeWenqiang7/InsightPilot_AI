@@ -1,0 +1,79 @@
+## Model Selection Rules
+
+### 1. Problem Type Identification
+- Binary classification → Logistic Regression, XGBoost, LightGBM, Random Forest, SVM
+- Multi-class classification → same as binary + Softmax extensions
+- Regression → Linear Regression, Ridge, Lasso, XGBoost, LightGBM, Random Forest
+- Clustering (unsupervised) → KMeans, DBSCAN, Hierarchical, GMM
+- Time series forecasting → ARIMA, Prophet, LSTM, XGBoost with lag features
+- Anomaly detection → Isolation Forest, One-Class SVM, Autoencoder
+- Recommendation → Matrix Factorization, ALS, Neural Collaborative Filtering
+- NLP → TF-IDF + LR baseline, BERT fine-tuning for advanced
+
+### 2. Baseline Model Rule
+- ALWAYS train a baseline model first before complex models
+- Classification baseline: DummyClassifier (most_frequent strategy)
+- Regression baseline: DummyRegressor (mean strategy)
+- Simple baseline: Logistic Regression / Linear Regression
+- Document baseline score before iterating
+
+### 3. Model Selection by Data Size
+- Small data (< 1K rows) → Logistic/Linear Regression, SVM, KNN (avoid deep learning)
+- Medium data (1K - 100K rows) → Tree ensembles (XGBoost, LightGBM, RandomForest)
+- Large data (> 100K rows) → LightGBM (fast), Neural Networks, scalable algorithms
+- Very large (> 1M rows) → LightGBM, Spark MLlib, approximate methods
+
+### 4. Model Selection by Interpretability Need
+- High interpretability needed → Logistic Regression, Decision Tree, Linear Regression
+- Medium interpretability → Random Forest (feature importance), XGBoost + SHAP
+- Low interpretability OK → Neural Networks, stacking ensembles
+- Always add SHAP analysis if using black-box model for production
+
+### 5. Recommended Algorithms
+
+#### Classification
+- Logistic Regression: interpretable baseline, works well with sparse features
+- Random Forest: robust, handles missing values, low tuning needed
+- XGBoost: usually best out-of-box performance, handles heterogeneous data
+- LightGBM: faster than XGBoost, better for large datasets
+- SVM: good for high-dimensional, small-medium data
+- Neural Network (MLP): for non-linear complex patterns with sufficient data
+
+#### Regression
+- Linear Regression: when relationship is linear, interpretability matters
+- Ridge: linear + L2 regularization, when multicollinearity exists
+- Lasso: linear + L1 regularization, when feature selection is needed
+- ElasticNet: combines Ridge + Lasso
+- XGBoost / LightGBM: non-linear, robust, usually best performance
+- Gradient Boosting: GradientBoostingRegressor for medium datasets
+
+#### Clustering
+- KMeans: spherical clusters, known K, fast
+- DBSCAN: arbitrary shape clusters, auto-detects noise points, unknown K
+- Hierarchical: when hierarchy matters, small-medium data
+- GMM (Gaussian Mixture): soft cluster assignment, probabilistic
+
+### 6. Hyperparameter Tuning Strategy
+- Start with default parameters → establish baseline
+- Manual tuning: adjust most impactful params first (n_estimators, learning_rate, max_depth)
+- RandomizedSearchCV: faster than GridSearch, good for wide search space
+- Optuna / Hyperopt: Bayesian optimization, best for expensive models
+- Use cross-validation (CV=5) always during tuning
+- Never tune on test set
+
+### 7. Cross-Validation Strategy
+- Standard: StratifiedKFold (k=5) for classification
+- Standard: KFold (k=5) for regression
+- Time series: TimeSeriesSplit → no future leakage
+- Small data (< 1K): k=10 or Leave-One-Out
+- Always stratify when class imbalance exists
+
+### 8. Model Selection Checklist
+- [ ] Problem type clearly identified
+- [ ] Baseline model trained and documented
+- [ ] 2-3 candidate models selected based on data size and interpretability need
+- [ ] Cross-validation strategy chosen (no data leakage)
+- [ ] Models trained and compared on CV score
+- [ ] Best model selected, hyperparameter tuning applied
+- [ ] Final evaluation on held-out test set only
+- [ ] SHAP analysis added for black-box models

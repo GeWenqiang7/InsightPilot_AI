@@ -1,0 +1,66 @@
+## Feature Engineering Rules
+
+### 1. Numerical Transformations
+- If skew > 1 → log transform: np.log1p(x) [use log1p to handle zeros]
+- If skew > 1 and negative values → Box-Cox or Yeo-Johnson transform
+- If skew < -1 → square transform or reflect + log
+- If bimodal distribution → consider splitting into two clusters or flag
+- Standardization (Z-score): use when algorithm is distance-based (KNN, SVM, PCA)
+- Min-Max scaling [0,1]: use when need bounded range (neural nets, some algorithms)
+- Robust scaling: use when outliers are present (uses median and IQR)
+
+### 2. Missing Value Imputation
+- Numerical, missing < 10%, no pattern → mean or median imputation
+- Numerical, missing 10-30%, MAR → KNN imputation or IterativeImputer
+- Numerical, missing > 30% → create binary flag column (was_missing=1) + impute
+- Categorical, missing < 10% → mode imputation or "Unknown" category
+- Categorical, missing > 10% → create new category "Missing"
+- Time series → forward fill (ffill) or interpolation
+- Never impute target variable rows → drop those rows
+
+### 3. Categorical Encoding
+- Low cardinality (≤ 10 unique) → One-Hot Encoding (pd.get_dummies)
+- High cardinality (> 10 unique) → Target Encoding or Frequency Encoding
+- Ordinal categories → Ordinal Encoding (preserve order)
+- Binary categories → Label Encoding (0/1)
+- Tree-based models → can handle label encoding; linear models prefer one-hot
+- Avoid one-hot on high cardinality → causes curse of dimensionality
+
+### 4. Date/Time Feature Extraction
+- Always extract: year, month, day, day_of_week, hour (if time present)
+- Add: is_weekend, is_holiday, quarter
+- Add: days_since_first_date (relative time feature)
+- Add: cyclical encoding for month/hour: sin(2π*x/max), cos(2π*x/max)
+- Cyclical encoding prevents model treating Dec→Jan as large jump
+
+### 5. Text Features (if applicable)
+- Basic: length of text, word count, char count
+- TF-IDF vectorizer for bag-of-words representation
+- Sentence embeddings (sentence-transformers) for semantic similarity
+- Sentiment score using VADER or TextBlob
+- Named entity extraction for structured info
+
+### 6. Interaction & Polynomial Features
+- Create interaction terms: feature_A * feature_B when domain knowledge suggests relationship
+- Polynomial features (degree 2): use for linear models when non-linear relationship suspected
+- Ratio features: A / B (e.g., revenue per user, cost per click)
+- Binning: pd.cut() or pd.qcut() to convert continuous to categorical (use sparingly)
+
+### 7. Feature Selection
+- Remove near-zero variance features: sklearn VarianceThreshold
+- Remove highly correlated features: keep one of any pair with |corr| > 0.85
+- Tree-based feature importance: RandomForest.feature_importances_
+- Recursive Feature Elimination (RFE): for linear models
+- SelectKBest with f_classif/f_regression: statistical test based selection
+- Permutation importance: model-agnostic, handles correlated features better
+
+### 8. Feature Engineering Checklist
+- [ ] All numerical skewness addressed
+- [ ] All missing values imputed with appropriate strategy
+- [ ] Categorical features encoded appropriately
+- [ ] Date features extracted if datetime column present
+- [ ] New interaction features created based on domain knowledge
+- [ ] Near-zero variance features removed
+- [ ] Highly correlated features deduplicated
+- [ ] Feature count documented (before and after)
+- [ ] Transformations saved in pipeline (not hardcoded)

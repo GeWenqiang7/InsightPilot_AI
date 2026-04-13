@@ -1,0 +1,57 @@
+## Evaluation Metrics Rules
+
+### 1. Classification Metrics
+- Accuracy: use only when classes are balanced
+- Precision: use when false positives are costly (e.g., spam filter)
+- Recall: use when false negatives are costly (e.g., cancer detection)
+- F1 Score: harmonic mean of precision + recall; use for imbalanced classes
+- F-beta: F2 weights recall higher; F0.5 weights precision higher
+- ROC-AUC: discrimination ability; use for binary classification ranking
+- PR-AUC (Precision-Recall AUC): better than ROC-AUC for heavily imbalanced data
+- Log Loss: probabilistic metric; use when calibrated probabilities matter
+- Cohen's Kappa: agreement metric, handles class imbalance
+- Matthews Correlation Coefficient (MCC): best single metric for imbalanced binary
+
+### 2. Regression Metrics
+- MAE (Mean Absolute Error): interpretable, robust to outliers
+- RMSE (Root Mean Square Error): penalizes large errors, sensitive to outliers
+- MAPE (Mean Absolute Percentage Error): scale-independent, avoid when target has zeros
+- SMAPE: symmetric MAPE, handles near-zero targets better
+- R² (R-squared): proportion of variance explained; context-dependent
+- Adjusted R²: penalizes unnecessary features; use for model comparison
+- Median Absolute Error: more robust than MAE when outliers exist
+
+### 3. Clustering Metrics
+- Silhouette Score: [-1, 1], higher is better, measures cohesion vs separation
+- Davies-Bouldin Index: lower is better
+- Calinski-Harabasz Index: higher is better, variance ratio criterion
+- Inertia (KMeans): within-cluster sum of squares; use elbow method to find K
+- Adjusted Rand Index: when ground truth labels available
+- Normalized Mutual Information (NMI): when ground truth available
+
+### 4. Class Imbalance Decision Rules
+- If positive class < 10% → do NOT use accuracy; use F1, PR-AUC, MCC
+- If positive class < 5% → prioritize Recall and PR-AUC
+- Always report confusion matrix for classification tasks
+- Always report classification_report (precision, recall, F1 per class)
+
+### 5. Reporting Standards
+- Always report mean ± std across cross-validation folds
+- Always compare against baseline (DummyClassifier/Regressor)
+- Report multiple metrics (not just one) for complete picture
+- For business reports: translate metrics to business impact (e.g., "5% improvement in recall = $X revenue saved")
+
+### 6. Overfitting Detection
+- If train score >> val score by > 5-10% → overfitting
+- Solutions: add regularization, reduce model complexity, get more data, dropout (NN)
+- If train score ≈ val score but both low → underfitting
+- Solutions: more complex model, more features, remove regularization
+
+### 7. Evaluation Checklist
+- [ ] Correct metric chosen for problem type and class distribution
+- [ ] Baseline comparison documented
+- [ ] Cross-validation mean ± std reported (not single split)
+- [ ] Confusion matrix plotted (classification)
+- [ ] Residual plot analyzed (regression)
+- [ ] Learning curve plotted (diagnose over/underfitting)
+- [ ] Final test set evaluation performed exactly once

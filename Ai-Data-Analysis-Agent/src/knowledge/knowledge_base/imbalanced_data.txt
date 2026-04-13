@@ -1,0 +1,52 @@
+## Imbalanced Data Handling Rules
+
+### 1. Detecting Imbalance
+- Compute class ratio: df['target'].value_counts(normalize=True)
+- Mild imbalance: minority class 20-40% → may not need special treatment
+- Moderate imbalance: minority class 5-20% → use class_weight
+- Severe imbalance: minority class 1-5% → use resampling
+- Extreme imbalance: minority class < 1% → use anomaly detection framing
+
+### 2. Strategy Selection
+- First try: class_weight='balanced' in sklearn model (no data modification needed)
+- If still poor: oversample minority class (SMOTE)
+- If noisy data: undersample majority (RandomUnderSampler)
+- Combined: SMOTE + Tomek Links or SMOTE + ENN (cleans borderline samples)
+- Never apply resampling to validation or test set — only training data
+
+### 3. SMOTE Variants
+- SMOTE: basic synthetic oversampling (interpolates between minority samples)
+- BorderlineSMOTE: focuses on borderline minority samples (often better)
+- ADASYN: adaptive, generates more samples in harder-to-learn regions
+- SMOTENC: handles mixed numerical + categorical features
+- Use imbalanced-learn (imblearn) library
+
+### 4. Algorithm-Level Solutions
+- tree-based: set class_weight={0:1, 1:W} where W = majority_count/minority_count
+- XGBoost: use scale_pos_weight = negative_count / positive_count
+- LightGBM: use is_unbalance=True or class_weight
+- Logistic Regression: class_weight='balanced'
+- Cost-sensitive learning: define custom loss that penalizes minority class errors more
+
+### 5. Threshold Tuning
+- Default threshold = 0.5 is rarely optimal for imbalanced data
+- Use Precision-Recall curve to find optimal threshold for business need
+- If recall is priority (e.g., fraud): lower threshold (e.g., 0.3)
+- If precision is priority (e.g., marketing): raise threshold (e.g., 0.7)
+- Use F-beta score to optimize threshold with custom beta
+
+### 6. Evaluation for Imbalanced Data
+- Do NOT use accuracy → misleading
+- Use: F1, PR-AUC, MCC, Cohen's Kappa
+- Always report per-class precision, recall, F1
+- Plot confusion matrix (normalize by true class)
+- Plot Precision-Recall curve (not just ROC curve)
+
+### 7. Imbalanced Data Checklist
+- [ ] Imbalance ratio computed
+- [ ] Strategy selected based on ratio severity
+- [ ] Resampling applied to training data only
+- [ ] class_weight or scale_pos_weight configured
+- [ ] Correct evaluation metrics used (no accuracy as primary)
+- [ ] Threshold tuned for business objective
+- [ ] Final PR-AUC and F1 reported
