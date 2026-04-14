@@ -1,189 +1,245 @@
-# 🤖 AI Data Analysis Agent System
+# 🤖 AI Data Analysis Agent System (PRD Version - Full)
 
-## 📌 Overview
+------------------------------------------------------------------------
 
-This project is an **agent-based automated data analysis system** powered by LLMs.
+## 1. 📌 Product Overview
 
-It integrates:
+AI Data Analysis Agent 是一个端到端自动化数据分析系统，通过 LLM +
+Agent + Tool Pipeline，实现从用户需求到建模与报告输出的完整流程自动化。
 
-* 🧠 Agent decision-making
-* 🔄 LangGraph workflow orchestration
-* 🛠 Tool-based execution (EDA, Feature Engineering, Modeling)
-* 📚 RAG (Retrieval-Augmented Generation)
-* ⚙️ Function Calling for structured execution
-* 🚀 API + Docker deployment
+核心价值： - 自动理解数据 - 自动生成分析目标 - 自动执行EDA、特征工程、选择模型建模与结果评估 - 自动输出Notebook与分析报告
 
-The system can automatically:
+------------------------------------------------------------------------
 
-* Understand datasets
-* Generate feature engineering strategies
-* Train and evaluate models
-* Iterate and optimize results
+## 2. 🎯 Target Users
 
----
+-   数据分析师（提升效率）
+-   产品经理（快速验证业务问题）
+-   非技术业务人员
+-   AI / Data 产品开发者
 
-## 🧱 System Architecture
+------------------------------------------------------------------------
 
-```
-User Query
-   ↓
-LLM Agent (Decision Layer)
-   ↓
-Tool Execution (EDA / FE / Model / RAG)
-   ↓
-State Memory (LangGraph)
-   ↓
-Iteration Loop
-   ↓
-Final Report
-```
+## 3. 🚀 End-to-End Workflow
 
----
+User Input\
+↓\
+Goal Generation（LLM推荐分析目标）\
+↓\
+User Selection / Iteration\
+↓\
+EDA（结构化数据分析）\
+↓\
+Feature Engineering Plan（LLM生成）\
+↓\
+Feature Engineering Execution\
+↓\
+Model Training\
+↓\
+Evaluation\
+↓\
+Notebook + Report Output
 
-## 🔑 Key Features
+------------------------------------------------------------------------
 
-### 1. Agent-based Workflow
+## 4. Core Modules
 
-* LLM dynamically decides next actions
-* Supports multi-step reasoning and iteration
+### 4.1 Input Layer
 
-### 2. Tool Modularization
+-   数据上传（CSV / 本地路径）
+-   分析需求（自然语言 / 文档）
 
-* EDA Tool
-* Feature Engineering Tool
-* Model Training Tool
-* Evaluation Tool
+------------------------------------------------------------------------
 
-### 3. LangGraph Integration
+### 4.2 Goal Generation 
 
-* State-driven workflow
-* Scalable pipeline orchestration
+LLM 自动生成 3--5 个候选分析目标：
 
-### 4. Function Calling
+每个目标包含： - goal_id - 分析标题 - problem_type - 方法（ML / 统计） - 分析思路 - 可行性解释 - 输出结果 - 评估指标
 
-* Structured tool invocation
-* Reliable JSON outputs
+支持多轮 refinement（不覆盖历史）
 
-### 5. RAG (Knowledge Augmentation)
+------------------------------------------------------------------------
 
-* Retrieves domain knowledge
-* Enhances feature engineering and modeling decisions
+### 4.3 EDA Module
 
-### 6. Iterative Optimization
+输出： - eda_result.json（完整） - eda_for_llm.json（压缩）
 
-* Model → Evaluate → Improve loop
+分析内容： - schema / meta - missing - distribution - outliers - correlation - insights
 
----
+------------------------------------------------------------------------
 
-## 📁 Project Structure
+### 4.4 Feature Engineering
 
-```
-src/
- ├── agent/        # decision logic
- ├── tools/        # execution modules
- ├── rag/          # retrieval system
- ├── graph/        # workflow orchestration
- ├── llm/          # LLM interface
- └── eda/          # EDA pipeline
-```
+LLM 生成：
 
----
+fe_plan.json： - 变量转换 - 特征构造 - 编码方式 - 特征筛选 - explainability
 
-## ⚙️ How It Works
+------------------------------------------------------------------------
 
-### Step 1: EDA
+### 4.5 Modeling
 
-Analyze dataset structure, distribution, missing values, and outliers.
+自动匹配：
 
-### Step 2: Feature Engineering
+  类型   模型
+  ------ --------------------
+  分类   Logistic / XGBoost
+  回归   Linear / XGBoost
+  聚类   KMeans
 
-Generate transformation plans using LLM.
+------------------------------------------------------------------------
 
-### Step 3: Model Training
+### 4.6 Evaluation
 
-Train predictive models (Logistic Regression / XGBoost).
+-   分类：AUC / F1
+-   回归：RMSE / MAE
+-   特征重要性
+-   泛化能力
 
-### Step 4: Evaluation
+------------------------------------------------------------------------
 
-Evaluate performance and metrics.
+### 4.7 Output
 
-### Step 5: Iteration (Agent Loop)
+📓 Notebook（完整pipeline）\
+📄 PDF Report（业务分析报告）
 
-Agent decides whether to:
+------------------------------------------------------------------------
 
-* Improve features
-* Change model
-* Stop
+## 5. 🧱 System Architecture
 
----
+User → LLM → Agent → Tools → Output
 
-## 📚 RAG Integration
+------------------------------------------------------------------------
 
-The system retrieves relevant knowledge such as:
+## 6. 📁 Project Structure
+```bash
+ai-data-analysis-agent/
+│
+├── src/
+│
+│   ├── core/                      # ⭐ 系统主流程（唯一主线）
+│   │   └── pipeline.py            # orchestrator（串所有步骤）
+│
+│   ├── input/                     # 📥 用户输入处理
+│   │   ├── data_loader.py         # 读取数据（csv/path）
+│   │   └── query_parser.py        # 解析用户需求（自然语言）
+│
+│   ├── goal/                      # 🎯 核心模块（系统大脑）
+│   │   ├── goal_generator.py      # 生成候选分析目标（LLM）
+│   │   ├── goal_selector.py       # 用户选择 / refine
+│   │   └── goal_schema.py         # goal结构定义（标准化）
+│
+│   ├── eda/                       # 📊 数据理解
+│   │   ├── eda_runner.py          # 统一EDA入口（调用你现有pipeline）
+│   │   ├── missing.py
+│   │   ├── distribution.py
+│   │   ├── outlier.py
+│   │   ├── correlation.py
+│   │   └── insights.py
+│
+│   ├── feature_engineering/       # 🧪 特征工程
+│   │   ├── fe_generator.py        # LLM生成FE plan
+│   │   ├── fe_executor.py         # 执行FE
+│   │   └── fe_schema.py           # 定义FE JSON结构
+│
+│   ├── modeling/                  # 🤖 建模
+│   │   ├── model_selector.py      # 根据goal选模型
+│   │   ├── trainer.py             # 训练模型
+│   │   └── evaluator.py           # 评估模型
+│
+│   ├── reporting/                 # 📄 输出结果
+│   │   ├── notebook_generator.py  # 生成.ipynb
+│   │   └── report_generator.py    # 生成PDF报告
+│
+│   ├── llm/                       # 🤖 LLM工具层（纯工具）
+│   │   ├── client.py              # API调用
+│   │   ├── prompt.py              # prompt模板
+│   │   └── parser.py              # JSON解析
+│   
+│   ├── knowledge/                    #（RAG核心）
+│   │   ├── retriever.py             # 🔎 检索相关知识
+│   │   ├── embedder.py              # 📐 生成embedding
+│   │   ├── knowledge_base/          # 📚 知识存储
+│   │   │   ├── fe_rules.txt
+│   │   │   ├── model_selection.txt
+│   │   │   ├── eda_guidelines.txt
+│   │   │   └── business_cases/
+│   │
+│   └── knowledge_manager.py     # 🧠 管理检索逻辑（统一入口）
+│
+│   └── utils/                     # 🔧 工具函数
+│       ├── io.py
+│       └── logger.py
+│
+├── scripts/                       # 🧪 调试入口（必须）
+│   ├── run_pipeline.py
+│   ├── run_eda.py
+│   ├── run_goal.py
+│   └── playground.py
+│
+├── data/
+│   ├── raw/
+│   └── processed/
+│
+├── output/
+│   ├── eda/
+│   ├── fe/
+│   ├── model/
+│   └── report/
+│
+├── app/
+│   ├── cli.py                    # 用户交互入口（核心）
+│   └── api.py
+│
+├── README.md
+└── requirements.txt
+```    
+------------------------------------------------------------------------
 
-* Feature engineering best practices
-* Outlier handling techniques
-* Model selection strategies
+## 7. Execution
 
----
-
-## 🚀 Deployment
-
-### Run locally
-
-```
+``` bash
 python app/api.py
 ```
 
-### Docker
+------------------------------------------------------------------------
 
+## 8. Deployment
+
+``` bash
+docker build -t ai-analysis-agent .
+docker run -p 8000:8000 ai-analysis-agent
 ```
-docker build -t ai-agent .
-docker run -p 8000:8000 ai-agent
-```
 
----
+------------------------------------------------------------------------
 
-## 🧪 Example Output
+## 9. 🧪 Example Outputs
 
-* EDA summary
-* Feature engineering plan (JSON)
-* Model performance report
-* Final insights
+-   eda_result.json\
+-   eda_for_llm.json\
+-   fe_plan.json\
+-   model_metrics.json\
+-   notebook.ipynb\
+-   report.pdf
 
----
+------------------------------------------------------------------------
 
-## 🎯 Use Cases
+## 10. Future Roadmap
 
-* Automated data analysis
-* Feature engineering assistant
-* Model prototyping
-* Data science workflow automation
+-   Multi-Agent（Planner / Critic）
+-   AutoML
+-   多模态分析（图表理解）
+-   Dashboard UI
+-   实时数据接入
 
----
+------------------------------------------------------------------------
 
-## 🧠 Tech Stack
+## 11. Tech Stack
 
-* Python
-* OpenAI API
-* LangGraph
-* FAISS / Vector DB
-* FastAPI
-* Docker
+-   Python
+-   OpenAI API
+-   LangGraph
+-   Pandas / Sklearn / XGBoost
+-   FAISS
+-   Docker
 
----
-
-## 💡 Future Work
-
-* Multi-agent collaboration
-* AutoML integration
-* UI dashboard
-* Real-time data pipeline
-
----
-
-## 👤 Author
-
-Wenqiang Ge
-
----
