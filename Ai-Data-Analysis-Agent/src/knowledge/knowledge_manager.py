@@ -5,36 +5,105 @@ from collections import defaultdict
 
 class KnowledgeManager:
     """
-    可扩展 Knowledge Manager（支持未来 embedding / vector）
-
-    层级设计：
-    1. load_documents
-    2. chunk_documents
-    3. build_index
-    4. retrieve（keyword MVP）
-    5. format_context（给LLM）
+    可扩展 Knowledge Manager（支持：
+    ✔ keyword检索
+    ✔ 中文query → 英文翻译（LLM）
+    ✔ RAG context构建
+    ✔ 未来 embedding / vector 扩展
     """
 
-    def __init__(self, knowledge_dir="src/knowledge/knowledge_base"):
+    def __init__(self, knowledge_dir=None, llm_client=None):
+
+        # =========================
+        # 🔥 自动定位项目根目录
+        # =========================
+        BASE_DIR = os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(os.path.abspath(__file__))
+            )
+        )
+
+        # =========================
+        # 🔥 设置知识库路径
+        # =========================
+        if knowledge_dir is None:
+            knowledge_dir = os.path.join(
+                BASE_DIR,
+                "src",
+                "knowledge",
+                "knowledge_base"
+            )
+
         self.knowledge_dir = knowledge_dir
+        self.llm_client = llm_client  # 🔥 LLM用于query翻译
+
+        print(f"📂 Knowledge path: {self.knowledge_dir}")
 
         self.documents = []
         self.chunks = []
         self.index = defaultdict(list)
 
+        # 初始化流程
         self._load_documents()
         self._chunk_documents()
         self._build_index()
 
     # =========================
-    # 1. 文档加载层
+    # 🔥 中英文 tokenization
+    # =========================
+    def _tokenize(self, text):
+        """
+        支持：
+        - 中文（按字）
+        - 英文（按词）
+        """
+        chinese_chars = list(text)
+        english_words = re.findall(r"[a-zA-Z0-9]+", text.lower())
+        return chinese_chars + english_words
+
+    # =========================
+    # 🔥 LLM query翻译（核心升级）
+    # =========================
+    def _translate_query(self, query):
+
+        if not self.llm_client:
+            return ""
+
+        prompt = f"""
+Translate the following user query into concise English search keywords.
+
+Rules:
+- Keep only important terms
+- No full sentences
+- Output only keywords
+
+Query:
+{query}
+"""
+
+        try:
+            result = self.llm_client.generate(prompt)
+            translated = result.strip()
+
+            print(f"🌍 Translated query: {translated}")
+
+            return translated
+
+        except Exception as e:
+            print("⚠️ Translation failed:", e)
+            return ""
+
+    # =========================
+    # 1. 文档加载
     # =========================
     def _load_documents(self):
+
         if not os.path.exists(self.knowledge_dir):
             print(f"⚠️ Knowledge directory not found: {self.knowledge_dir}")
             return
 
         for file in os.listdir(self.knowledge_dir):
+
             if not file.endswith(".txt"):
                 continue
 
@@ -55,26 +124,25 @@ class KnowledgeManager:
 
             self.documents.append(doc)
 
+        print(f"✅ Loaded {len(self.documents)} documents")
+
     # =========================
-    # 2. chunk 层
+    # 2. chunk
     # =========================
     def _chunk_documents(self, chunk_size=300):
-        """
-        简单chunk：
-        - 先按段落分
-        - 再按长度切
-        """
 
         chunk_id = 0
 
         for doc in self.documents:
-            paragraphs = doc["content"].split("\n")
 
+            paragraphs = doc["content"].split("\n")
             buffer = ""
 
             for para in paragraphs:
+
                 if len(buffer) + len(para) < chunk_size:
                     buffer += " " + para
+
                 else:
                     self.chunks.append({
                         "chunk_id": f"{doc['doc_id']}_{chunk_id}",
@@ -96,28 +164,35 @@ class KnowledgeManager:
                 })
                 chunk_id += 1
 
+        print(f"✅ Created {len(self.chunks)} chunks")
+
     # =========================
-    # 3. index 层（keyword）
+    # 3. index
     # =========================
     def _build_index(self):
-        """
-        倒排索引（简单版本）
-        """
+
         for chunk in self.chunks:
-            words = re.findall(r"\w+", chunk["text"].lower())
+
+            words = self._tokenize(chunk["text"])
 
             for word in words:
                 self.index[word].append(chunk)
 
+        print(f"✅ Built index with {len(self.index)} keywords")
+
     # =========================
-    # 4. 检索层（keyword MVP）
+    # 4. 检索（核心）
     # =========================
     def retrieve(self, query, top_k=5):
-        """
-        返回结构化 chunk，而不是字符串
-        """
 
-        query_words = re.findall(r"\w+", query.lower())
+        # 原始query
+        query_words = self._tokenize(query)
+
+        # 🔥 LLM翻译
+        translated_query = self._translate_query(query)
+
+        if translated_query:
+            query_words += self._tokenize(translated_query)
 
         scores = defaultdict(float)
 
@@ -125,12 +200,12 @@ class KnowledgeManager:
             for chunk in self.index.get(word, []):
                 scores[chunk["chunk_id"]] += 1
 
-        # 排序
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
         results = []
 
         for chunk_id, score in ranked[:top_k]:
+
             chunk = next(c for c in self.chunks if c["chunk_id"] == chunk_id)
 
             results.append({
@@ -141,15 +216,14 @@ class KnowledgeManager:
                 "score": score
             })
 
+        print(f"🔍 Retrieved {len(results)} chunks")
+
         return results
 
     # =========================
-    # 5. context组装层
+    # 5. context组装
     # =========================
     def format_context(self, retrieved_chunks):
-        """
-        转成LLM prompt可用格式
-        """
 
         context_blocks = []
         topics = set()
@@ -170,8 +244,10 @@ class KnowledgeManager:
         }
 
     # =========================
-    # 对外接口（稳定API）
+    # 对外接口
     # =========================
     def get_knowledge(self, query, top_k=5):
+
         retrieved = self.retrieve(query, top_k)
+
         return self.format_context(retrieved)
