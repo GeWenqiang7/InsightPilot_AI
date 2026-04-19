@@ -243,3 +243,15 @@ docker run -p 8000:8000 ai-analysis-agent
 -   FAISS
 -   Docker
 
+
+## 12. Skill 化重构提案（2026-04）
+
+已补充一份重构蓝图：
+- `docs/system_restructure_plan.md`
+
+并新增 skill 目录草案（用于后续独立 workflow 封装）：
+- `skills/eda/SKILL.md`
+- `skills/fe/SKILL.md`
+- `skills/model/SKILL.md`
+- `skills/evaluate/SKILL.md`
+- `skills/report/SKILL.md`
