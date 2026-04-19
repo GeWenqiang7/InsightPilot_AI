@@ -1,44 +1,36 @@
-'''
-知识图（KG）Agent
-- 负责从EDA结果中构建知识图（KG）
-- 通过分析特征间的关系、重要性等信息，构建KG结构
-- 输出KG结构供后续分析和可视化使用
+"""
+KG Reasoning Agent是一个基于EDA结果构建知识图谱并进行推理的智能模块，旨在帮助用户从数据中挖掘关键特征、识别特征间的关系，并提供可解释的分析结果。
+它不仅从EDA结果中抽取KG候选关系，还基于这些关系构建轻量级的知识图谱，并提供推理功能，帮助用户识别关键特征、特征聚类、推理路径等信息，提升数据分析的智能化水平。     
 
 核心功能：
-1. 关系抽取：从EDA结果中识别特征间的相关性、重要特征等信息，构建边和节点
-2. KG构建：将抽取的信息组织成KG结构，支持简单的查询和可视化接口
-3. 对外接口：提供统一的run函数，供Agent调用，输出KG结构
+1. 从EDA结果中抽取KG候选关系，包含特征间的相关性、重要特征等信息
+2. 构建KG结构（节点+边），支持简单的查询和可视化接口
+3. 提供统一的run函数，供Agent调用，输出KG结构   
+4. 基于KG进行推理，输出关键特征、特征聚类、推理路径等信息
+5. 兼容旧调用方式，同时支持OpenAI function-calling接口
 
-设计思路：
-- 轻量级设计：KG结构简单，主要关注特征关系和重要性  
-- 模块化：关系抽取、KG构建、推理等功能模块化，便于维护和升级
-- 可扩展性：KG结构设计为可扩展，未来可以加入更多类型的关系和节点属性
+输入：
+- state["kg_candidates"]：从EDA结果中抽取的KG候选关系，包含特征间的相关性、重要特征等信息
+输出：  
+- state["knowledge_graph"]：构建的KG结构，包含节点和边
+- state["kg_result"]：基于KG的推理结果，包含关键特征、特征聚类、推理路径等信息 
 
-作用：
-- 通过KG结构更好地理解数据特征间的关系，辅助后续的特征选择、模型构建等步骤  
-
-'''
+"""
 
 from collections import defaultdict
+from typing import Dict, Any, Tuple
 
-
-# 基础工具
 
 def find_target_node(kg):
     return "TARGET"
 
+
 def build_adjacency_list(kg):
     graph = defaultdict(list)
-
     for edge in kg.edges:
         graph[edge["source"]].append(edge)
-    
     return graph
 
-
-# =========================
-# Feature Importance (基于KG的特征重要性分析)
-# =========================
 
 def compute_feature_importance(kg, target_node):
     importance = []
@@ -51,18 +43,8 @@ def compute_feature_importance(kg, target_node):
                 "relation": edge["type"]
             })
 
-    importance = sorted(
-        importance,
-        key=lambda x: x["importance"],
-        reverse=True
-    )
+    return sorted(importance, key=lambda x: x["importance"], reverse=True)
 
-    return importance
-
-
-# =========================
-#  Node Ranking（图级评分，基于边权重和连接度）
-# =========================
 
 def compute_node_scores(kg):
     scores = defaultdict(float)
@@ -77,10 +59,6 @@ def compute_node_scores(kg):
         reverse=True
     )
 
-
-# =========================
-#  Feature Clusters（共线性/关系组）
-# =========================
 
 def build_feature_clusters(kg):
     clusters = []
@@ -107,10 +85,6 @@ def build_feature_clusters(kg):
     return clusters
 
 
-# =========================
-#  推理路径（多路径）
-# =========================
-
 def build_reasoning_paths(kg, target_node):
     paths = []
 
@@ -123,10 +97,6 @@ def build_reasoning_paths(kg, target_node):
 
     return sorted(paths, key=lambda x: x["strength"], reverse=True)
 
-
-# =========================
-#  Graph结构导出（给可视化用）
-# =========================
 
 def export_graph_structure(kg):
     return {
@@ -144,48 +114,23 @@ def export_graph_structure(kg):
 
 
 # =========================
-# 主接口（核心）
+# 兼容旧逻辑
 # =========================
-
-def run(state):
-
+def run(state: Dict[str, Any]) -> Dict[str, Any]:
     print("🧠 [KG AGENT] Running advanced reasoning...")
 
     kg = state.get("knowledge_graph")
-
     if kg is None:
         raise ValueError("Knowledge graph not found")
 
     target_node = find_target_node(kg)
 
-    # =========================
-    # 1️⃣ Feature importance
-    # =========================
     feature_importance = compute_feature_importance(kg, target_node)
-
-    # =========================
-    # 2️⃣ Node ranking
-    # =========================
     node_scores = compute_node_scores(kg)
-
-    # =========================
-    # 3️⃣ Feature clusters
-    # =========================
     clusters = build_feature_clusters(kg)
-
-    # =========================
-    # 4️⃣ 推理路径
-    # =========================
     paths = build_reasoning_paths(kg, target_node)
-
-    # =========================
-    # 5️⃣ Graph export
-    # =========================
     graph_data = export_graph_structure(kg)
 
-    # =========================
-    # 6️⃣ Key features（最终输出）
-    # =========================
     key_features = [f["feature"] for f in feature_importance[:5]]
 
     result = {
@@ -199,8 +144,46 @@ def run(state):
 
     state["kg_result"] = result
 
-    print(f"✅ KG reasoning done")
+    print("✅ KG reasoning done")
     print(f"   - key_features: {len(key_features)}")
     print(f"   - clusters: {len(clusters)}")
 
     return state
+
+
+# =========================
+# Function Calling: 工具定义
+# =========================
+def get_tool_definition():
+    return {
+        "type": "function",
+        "function": {
+            "name": "reason_with_kg",
+            "description": "Run reasoning over existing knowledge graph and return key features, clusters and reasoning paths.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": False
+            }
+        }
+    }
+
+
+# =========================
+# Function Calling
+# =========================
+def invoke(params: Dict[str, Any], state: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    local_state = dict(state)
+    local_state = run(local_state)
+
+    kg_result = local_state.get("kg_result", {})
+
+    tool_result = {
+        "key_features": kg_result.get("key_features", []),
+        "clusters_count": len(kg_result.get("clusters", [])),
+        "reasoning_paths_count": len(kg_result.get("reasoning_paths", [])),
+        "kg_result": kg_result
+    }
+
+    return tool_result, local_state
