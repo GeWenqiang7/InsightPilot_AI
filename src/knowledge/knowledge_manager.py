@@ -1,6 +1,7 @@
 import os
 import re
 from collections import defaultdict
+from typing import Dict, List
 
 
 class KnowledgeManager:
@@ -148,6 +149,7 @@ Query:
                         "chunk_id": f"{doc['doc_id']}_{chunk_id}",
                         "doc_id": doc["doc_id"],
                         "topic": doc["topic"],
+                        "path": doc["path"],
                         "text": buffer.strip(),
                         "chunk_index": chunk_id
                     })
@@ -159,6 +161,7 @@ Query:
                     "chunk_id": f"{doc['doc_id']}_{chunk_id}",
                     "doc_id": doc["doc_id"],
                     "topic": doc["topic"],
+                    "path": doc["path"],
                     "text": buffer.strip(),
                     "chunk_index": chunk_id
                 })
@@ -201,19 +204,22 @@ Query:
                 scores[chunk["chunk_id"]] += 1
 
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        chunk_map = {chunk["chunk_id"]: chunk for chunk in self.chunks}
 
         results = []
 
         for chunk_id, score in ranked[:top_k]:
-
-            chunk = next(c for c in self.chunks if c["chunk_id"] == chunk_id)
+            chunk = chunk_map.get(chunk_id)
+            if chunk is None:
+                continue
 
             results.append({
                 "chunk_id": chunk["chunk_id"],
                 "doc_id": chunk["doc_id"],
                 "topic": chunk["topic"],
                 "text": chunk["text"],
-                "score": score
+                "score": score,
+                "source_path": chunk.get("path", "")
             })
 
         print(f"🔍 Retrieved {len(results)} chunks")
@@ -223,6 +229,33 @@ Query:
     # =========================
     # 5. context组装
     # =========================
+    def _build_evidence_items(self, retrieved_chunks: List[Dict], max_items: int = 3) -> List[Dict]:
+        evidence_items = []
+        for item in retrieved_chunks[:max_items]:
+            snippet = item.get("text", "").replace("\n", " ").strip()
+            evidence_items.append(
+                {
+                    "chunk_id": item.get("chunk_id"),
+                    "topic": item.get("topic"),
+                    "score": item.get("score", 0.0),
+                    "source_path": item.get("source_path", ""),
+                    "snippet": snippet[:220],
+                }
+            )
+        return evidence_items
+
+    def _estimate_retrieval_confidence(self, retrieved_chunks: List[Dict]) -> float:
+        if not retrieved_chunks:
+            return 0.0
+        top_score = float(retrieved_chunks[0].get("score", 0.0))
+        if top_score >= 8:
+            return 0.9
+        if top_score >= 5:
+            return 0.75
+        if top_score >= 3:
+            return 0.6
+        return 0.45
+
     def format_context(self, retrieved_chunks):
 
         context_blocks = []
@@ -237,10 +270,15 @@ Query:
 
         context_text = "\n\n".join(context_blocks)
 
+        evidence_items = self._build_evidence_items(retrieved_chunks)
+        retrieval_confidence = self._estimate_retrieval_confidence(retrieved_chunks)
+
         return {
             "context_text": context_text,
             "topics": list(topics),
-            "items": retrieved_chunks
+            "items": retrieved_chunks,
+            "evidence_items": evidence_items,
+            "retrieval_confidence": retrieval_confidence,
         }
 
     # =========================

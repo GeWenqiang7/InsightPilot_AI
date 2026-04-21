@@ -86,7 +86,11 @@ class Goal:
         # 🔥 Ranking核心（最重要）
         score: float = 0.0,
         priority: int = 0,
-        confidence: float = 0.0
+        confidence: float = 0.0,
+        evidence_topics: Optional[List[str]] = None,
+        evidence: Optional[List[Dict]] = None,
+        uncertainty_notes: Optional[List[str]] = None,
+        retrieval_confidence: float = 0.0,
     ):
         self.goal_id = goal_id
         self.goal_name = goal_name
@@ -106,6 +110,10 @@ class Goal:
         self.score = score
         self.priority = priority
         self.confidence = confidence
+        self.evidence_topics = evidence_topics or []
+        self.evidence = evidence or []
+        self.uncertainty_notes = uncertainty_notes or []
+        self.retrieval_confidence = retrieval_confidence
 
     @classmethod
     def from_dict(cls, data: dict):
@@ -128,7 +136,11 @@ class Goal:
             #  兼容priority_rank
             score=data.get("score", 0.0),
             priority=data.get("priority", data.get("priority_rank", 0)),
-            confidence=data.get("confidence", 0.0)
+            confidence=data.get("confidence", 0.0),
+            evidence_topics=data.get("evidence_topics", []),
+            evidence=data.get("evidence", []),
+            uncertainty_notes=data.get("uncertainty_notes", []),
+            retrieval_confidence=data.get("retrieval_confidence", 0.0),
         )
 
     def to_dict(self):
@@ -150,7 +162,11 @@ class Goal:
 
             "score": self.score,
             "priority": self.priority,
-            "confidence": self.confidence
+            "confidence": self.confidence,
+            "evidence_topics": self.evidence_topics,
+            "evidence": self.evidence,
+            "uncertainty_notes": self.uncertainty_notes,
+            "retrieval_confidence": self.retrieval_confidence,
         }
 
     def __repr__(self):

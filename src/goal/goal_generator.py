@@ -103,7 +103,11 @@ def validate_goals(goals):
 
             "score": g.get("score", 0.0),
             "priority_rank": g.get("priority_rank", 0),
-            "confidence": g.get("confidence", 0.0)
+            "confidence": g.get("confidence", 0.0),
+            "evidence_topics": g.get("evidence_topics", []),
+            "evidence": g.get("evidence", []),
+            "uncertainty_notes": g.get("uncertainty_notes", []),
+            "retrieval_confidence": g.get("retrieval_confidence", 0.0),
         }
 
         if goal["problem_type"] == "clustering":
@@ -131,7 +135,7 @@ def generate_goals(
     prompt = f"""
 You are a senior data scientist.
 
-Your job is to generate AND RANK data analysis goals.
+Your job is to generate AND RANK data analysis goals grounded in retrieved evidence.
 
 ========================
 [USER REQUEST]
@@ -148,6 +152,9 @@ Your job is to generate AND RANK data analysis goals.
 Relevant topics:
 {knowledge_context["topics"]}
 
+Retrieved evidence items:
+{json.dumps(knowledge_context.get("evidence_items", []), ensure_ascii=False, indent=2)}
+
 ========================
 TASK:
 
@@ -156,6 +163,8 @@ TASK:
    - Define problem_type
    - Suggest models
    - Provide reasoning
+   - Include evidence_topics based on retrieved topics
+   - Include uncertainty_notes when retrieval evidence is weak
 
 3. Evaluate each goal based on:
    - Business value
@@ -202,6 +211,16 @@ OUTPUT STRICT JSON:
     "score": 0.92,
     "confidence": 0.88,
     "priority_rank": 1,
+    "evidence_topics": ["..."],
+    "evidence": [
+      {{
+        "topic": "...",
+        "chunk_id": "...",
+        "snippet": "..."
+      }}
+    ],
+    "uncertainty_notes": ["..."],
+    "retrieval_confidence": 0.75,
 
     "reason": "..."
   }}
@@ -216,6 +235,18 @@ OUTPUT STRICT JSON:
 
     # 🔥 Step 5: 校验
     goals_clean = validate_goals(goals_raw)
+    fallback_evidence = knowledge_context.get("evidence_items", [])[:3]
+    fallback_topics = knowledge_context.get("topics", [])
+    retrieval_confidence = knowledge_context.get("retrieval_confidence", 0.0)
+    for goal in goals_clean:
+        if not goal.get("evidence_topics"):
+            goal["evidence_topics"] = fallback_topics[:3]
+        if not goal.get("evidence"):
+            goal["evidence"] = fallback_evidence
+        if goal.get("retrieval_confidence", 0.0) == 0.0:
+            goal["retrieval_confidence"] = retrieval_confidence
+        if retrieval_confidence < 0.6 and not goal.get("uncertainty_notes"):
+            goal["uncertainty_notes"] = ["knowledge retrieval confidence is limited; validate with domain expert before execution"]
 
     # 🔥 Step 6: 转对象
     goals = [Goal.from_dict(g) for g in goals_clean]
