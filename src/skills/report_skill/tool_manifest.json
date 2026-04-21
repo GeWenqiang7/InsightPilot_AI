@@ -1,14 +1,14 @@
 {
-  "skill_name": "model_skill",
+  "skill_name": "report_skill",
   "version": "0.2.0",
   "entrypoints": {
-    "runtime": "src.skills.model_skill.scripts.run_model_skill:run_model_skill",
-    "project_adapter": "src.skills.model_skill.adapters:run_model_skill_from_state"
+    "runtime": "src.skills.report_skill.scripts.run_report_skill:run_report_skill",
+    "project_adapter": "src.skills.report_skill.adapters:run_report_skill_from_state"
   },
   "tools": [
     {
       "name": "validate_payload",
-      "description": "Validate the model skill payload and normalize required fields.",
+      "description": "Validate the report skill payload and normalize required fields.",
       "parameters_schema": {
         "type": "object",
         "properties": {
@@ -20,8 +20,8 @@
       }
     },
     {
-      "name": "build_model_plan",
-      "description": "Build a placeholder modeling plan from FE output and task context.",
+      "name": "build_report_plan",
+      "description": "Build a placeholder reporting plan from upstream analysis outputs.",
       "parameters_schema": {
         "type": "object",
         "properties": {
@@ -33,8 +33,8 @@
       }
     },
     {
-      "name": "save_model_skill_artifacts",
-      "description": "Persist model skill output artifacts to disk.",
+      "name": "save_report_skill_artifacts",
+      "description": "Persist report skill output artifacts to disk.",
       "parameters_schema": {
         "type": "object",
         "properties": {
@@ -49,8 +49,8 @@
       }
     },
     {
-      "name": "run_model_skill",
-      "description": "Execute the model skill runtime on a normalized payload.",
+      "name": "run_report_skill",
+      "description": "Execute the report skill runtime on a normalized payload.",
       "parameters_schema": {
         "type": "object",
         "properties": {
@@ -62,8 +62,8 @@
       }
     },
     {
-      "name": "run_model_skill_from_state",
-      "description": "Execute model skill from the current project state and write results back into state.",
+      "name": "run_report_skill_from_state",
+      "description": "Execute report skill from the current project state and write results back into state.",
       "parameters_schema": {
         "type": "object",
         "properties": {

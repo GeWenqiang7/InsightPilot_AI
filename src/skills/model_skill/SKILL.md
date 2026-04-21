@@ -1,14 +1,15 @@
 ---
 name: model_skill
-description: Modeling skill scaffold for future development.
+description: Semi-autonomous modeling skill for selecting model strategies, preparing training plans, and structuring evaluation guidance.
 ---
 
 # Model Skill
 
-This is a scaffold for the future modeling skill.
+Use this skill when an agent needs a reusable modeling workflow after feature engineering and before reporting.
 
-Intended scope:
+This skill is designed to:
 
-- choose model families from task context and prepared features
-- manage training and evaluation workflows
-- expose a unified tool surface for downstream agent systems
+- consume FE output and task context
+- structure model family and evaluation recommendations
+- expose a unified tool surface for later training orchestration
+- remain portable across projects and agent frameworks

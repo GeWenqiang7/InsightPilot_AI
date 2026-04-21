@@ -1,14 +1,15 @@
 ---
 name: fe_skill
-description: Feature engineering skill scaffold for future development.
+description: Semi-autonomous feature engineering skill for turning EDA and task context into structured feature plans and executable transformation intent.
 ---
 
 # FE Skill
 
-This is a scaffold for the future feature engineering skill.
+Use this skill when an agent needs a reusable feature engineering workflow after EDA and before model training.
 
-Intended scope:
+This skill is designed to:
 
-- derive feature engineering plans from EDA and task context
-- expose a unified tool surface for FE-related operations
-- support both project-local agent orchestration and external skill invocation
+- consume EDA findings and task context
+- generate structured feature engineering recommendations
+- expose a unified tool surface for future FE execution
+- remain portable across projects and agent frameworks

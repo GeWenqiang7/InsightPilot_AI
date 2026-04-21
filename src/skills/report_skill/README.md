@@ -1,12 +1,12 @@
-# FE Skill
+# Report Skill
 
-`fe_skill` is the shared feature engineering skill package.
+`report_skill` is the shared reporting skill package.
 
 ## Main Entry Points
 
-- `src/skills/fe_skill/scripts/run_fe_skill.py`
-- `src/skills/fe_skill/tools.py`
-- `src/skills/fe_skill/adapters.py`
+- `src/skills/report_skill/scripts/run_report_skill.py`
+- `src/skills/report_skill/tools.py`
+- `src/skills/report_skill/adapters.py`
 
 ## Current Scope
 

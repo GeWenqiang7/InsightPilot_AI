@@ -1,6 +1,78 @@
 {
   "skill_name": "fe_skill",
-  "version": "0.1.0",
-  "status": "scaffold",
-  "tools": []
+  "version": "0.2.0",
+  "entrypoints": {
+    "runtime": "src.skills.fe_skill.scripts.run_fe_skill:run_fe_skill",
+    "project_adapter": "src.skills.fe_skill.adapters:run_fe_skill_from_state"
+  },
+  "tools": [
+    {
+      "name": "validate_payload",
+      "description": "Validate the FE skill payload and normalize required fields.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": ["payload"]
+      }
+    },
+    {
+      "name": "build_feature_plan",
+      "description": "Build a placeholder feature engineering plan from EDA context and task intent.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": ["payload"]
+      }
+    },
+    {
+      "name": "save_fe_skill_artifacts",
+      "description": "Persist FE skill output artifacts to disk.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "object"
+          },
+          "output_dir": {
+            "type": "string"
+          }
+        },
+        "required": ["result", "output_dir"]
+      }
+    },
+    {
+      "name": "run_fe_skill",
+      "description": "Execute the FE skill runtime on a normalized payload.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": ["payload"]
+      }
+    },
+    {
+      "name": "run_fe_skill_from_state",
+      "description": "Execute FE skill from the current project state and write results back into state.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "object"
+          }
+        },
+        "required": ["state"]
+      }
+    }
+  ]
 }
