@@ -1,0 +1,12 @@
+{
+  "skill_name": "report_skill",
+  "version": "0.1.0",
+  "status": "active",
+  "tools": [
+    {
+      "name": "run_report",
+      "entrypoint": "src.tools.report_tool.invoke",
+      "description": "Compose final analysis report from EDA/FE/Model/Evaluate artifacts."
+    }
+  ]
+}

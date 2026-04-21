@@ -1,6 +1,12 @@
 {
   "skill_name": "model_skill",
-  "version": "0.1.0",
-  "status": "scaffold",
-  "tools": []
+  "version": "0.2.0",
+  "status": "active",
+  "tools": [
+    {
+      "name": "run_model",
+      "entrypoint": "src.tools.model_tool.invoke",
+      "description": "Generate model strategy and evaluation focus from FE + EDA artifacts."
+    }
+  ]
 }

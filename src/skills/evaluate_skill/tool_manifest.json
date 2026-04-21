@@ -1,0 +1,12 @@
+{
+  "skill_name": "evaluate_skill",
+  "version": "0.1.0",
+  "status": "active",
+  "tools": [
+    {
+      "name": "run_evaluate",
+      "entrypoint": "src.tools.evaluate_tool.invoke",
+      "description": "Evaluate model strategy outputs and emit risk-aware improvement actions."
+    }
+  ]
+}

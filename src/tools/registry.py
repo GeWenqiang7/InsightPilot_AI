@@ -99,6 +99,10 @@ def register_default_tools():
     # 延迟导入，避免循环依赖
     from src.tools import eda_tool
     from src.tools import fe_tool
+    from src.tools import model_tool
+    from src.tools import advisor_tool
+    from src.tools import evaluate_tool
+    from src.tools import report_tool
     from src.kg import kg_builder
     from src.kg import kg_agent
 
@@ -114,6 +118,35 @@ def register_default_tools():
         name="run_fe",
         definition_fn=fe_tool.get_tool_definition,
         invoke_fn=fe_tool.invoke,
+    )
+
+
+    # Model
+    register_tool(
+        name="run_model",
+        definition_fn=model_tool.get_tool_definition,
+        invoke_fn=model_tool.invoke,
+    )
+
+    # Advisor
+    register_tool(
+        name="run_advisor",
+        definition_fn=advisor_tool.get_tool_definition,
+        invoke_fn=advisor_tool.invoke,
+    )
+
+    # Evaluate
+    register_tool(
+        name="run_evaluate",
+        definition_fn=evaluate_tool.get_tool_definition,
+        invoke_fn=evaluate_tool.invoke,
+    )
+
+    # Report
+    register_tool(
+        name="run_report",
+        definition_fn=report_tool.get_tool_definition,
+        invoke_fn=report_tool.invoke,
     )
 
     # KG build
