@@ -124,8 +124,8 @@
     "multicollinearity_groups": [
       [
         "label",
-        "score",
-        "amount"
+        "amount",
+        "score"
       ]
     ],
     "feature_target_correlation": {

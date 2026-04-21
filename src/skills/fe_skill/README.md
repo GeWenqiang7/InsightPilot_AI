@@ -1,5 +1,19 @@
 # FE Skill
 
-This folder is a scaffold for the future `fe_skill`.
+`fe_skill` is the shared feature engineering skill package.
 
-It exists so the shared `src/skills/` root is ready for the next development phase.
+## Main Entry Points
+
+- `src/skills/fe_skill/scripts/run_fe_skill.py`
+- `src/skills/fe_skill/tools.py`
+- `src/skills/fe_skill/adapters.py`
+
+## Current Scope
+
+This package currently provides a standard skeleton:
+
+- callable tools registry
+- direct runtime entrypoint
+- project-state adapter
+- examples and reference documents
+- tool manifest for future function-calling integration
