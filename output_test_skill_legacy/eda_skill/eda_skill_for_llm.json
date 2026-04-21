@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "rows": 4,
+    "cols": 3,
+    "numeric_cols": 3,
+    "categorical_cols": 0,
+    "datetime_cols": 0,
+    "duplicate_rows": 0
+  },
+  "features": {
+    "amount": {
+      "type": "int64",
+      "mean": 25.0,
+      "std": 12.91,
+      "skew": 0.0,
+      "kurtosis": -1.2,
+      "missing": 0.0
+    },
+    "score": {
+      "type": "float64",
+      "mean": 0.575,
+      "std": 0.33,
+      "skew": -0.229,
+      "kurtosis": -3.869,
+      "missing": 0.0
+    },
+    "label": {
+      "type": "int64",
+      "mean": 0.5,
+      "std": 0.577,
+      "skew": 0.0,
+      "kurtosis": -6.0,
+      "missing": 0.0
+    }
+  },
+  "insights": [],
+  "warnings": []
+}

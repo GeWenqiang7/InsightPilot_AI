@@ -1,0 +1,293 @@
+{
+  "skill_name": "eda_skill",
+  "version": "0.2.0",
+  "entrypoints": {
+    "runtime": "src.skills.eda_skill.scripts.run_eda_skill:run_eda_skill",
+    "project_adapter": "src.skills.eda_skill.adapters:run_eda_skill_from_state"
+  },
+  "tools": [
+    {
+      "name": "load_tabular_data",
+      "description": "Load tabular data from a pandas DataFrame, CSV path, JSON records list, or record dictionary.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "A DataFrame-like input, CSV path, list of records, or record dictionary."
+          }
+        },
+        "required": ["data"]
+      }
+    },
+    {
+      "name": "build_meta",
+      "description": "Build dataset-level metadata such as row count, column count, and duplicate rows.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          }
+        },
+        "required": ["df"]
+      }
+    },
+    {
+      "name": "build_schema",
+      "description": "Build per-column schema information including dtype, semantic type, uniqueness, and nullability.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          }
+        },
+        "required": ["df"]
+      }
+    },
+    {
+      "name": "get_meta_info",
+      "description": "Return the base row and column profile for the dataset.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          }
+        },
+        "required": ["df"]
+      }
+    },
+    {
+      "name": "get_schema_info",
+      "description": "Return the base dtype and uniqueness profile for each column.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          }
+        },
+        "required": ["df"]
+      }
+    },
+    {
+      "name": "analyze_missing",
+      "description": "Compute missingness metrics for each column.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          },
+          "threshold": {
+            "type": "number",
+            "description": "Threshold above which missingness is marked high."
+          }
+        },
+        "required": ["df"]
+      }
+    },
+    {
+      "name": "analyze_distribution",
+      "description": "Compute numeric distribution summaries for applicable columns.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          }
+        },
+        "required": ["df"]
+      }
+    },
+    {
+      "name": "analyze_outliers",
+      "description": "Estimate outlier ratios for numeric columns.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          }
+        },
+        "required": ["df"]
+      }
+    },
+    {
+      "name": "build_target_summary",
+      "description": "Parse and summarize the target according to the problem type.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          },
+          "target": {
+            "description": "Target column, expression, or callable target spec."
+          },
+          "problem_type": {
+            "type": "string",
+            "enum": ["classification", "regression", "clustering", "profiling"]
+          }
+        },
+        "required": ["df", "target"]
+      }
+    },
+    {
+      "name": "analyze_correlation",
+      "description": "Compute feature-feature and feature-target correlation signals.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "df": {
+            "description": "The tabular dataset as a pandas DataFrame."
+          },
+          "target_series": {
+            "description": "Optional target series for supervised correlation analysis."
+          }
+        },
+        "required": ["df"]
+      }
+    },
+    {
+      "name": "generate_feature_insights",
+      "description": "Generate simple EDA insights from missingness, distribution, and outlier findings.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "missing": {
+            "type": "object"
+          },
+          "dist": {
+            "type": "object"
+          },
+          "outliers": {
+            "type": "object"
+          }
+        },
+        "required": ["missing", "dist", "outliers"]
+      }
+    },
+    {
+      "name": "build_recommendations",
+      "description": "Turn EDA insights into higher-level recommendations.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "insights": {
+            "type": "array"
+          }
+        },
+        "required": ["insights"]
+      }
+    },
+    {
+      "name": "compress_for_llm",
+      "description": "Compress EDA results into a compact LLM-ready context object.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "eda_result": {
+            "type": "object"
+          },
+          "max_features": {
+            "type": "integer"
+          }
+        },
+        "required": ["eda_result"]
+      }
+    },
+    {
+      "name": "extract_kg_candidates",
+      "description": "Extract graph-ready candidate relations and important features from EDA results.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "eda_result": {
+            "type": "object"
+          }
+        },
+        "required": ["eda_result"]
+      }
+    },
+    {
+      "name": "build_rag_queries",
+      "description": "Generate retrieval intents from EDA findings that require external guidance.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "problem_type": {
+            "type": "string"
+          },
+          "target_summary": {
+            "type": "object"
+          },
+          "missing": {
+            "type": "object"
+          }
+        },
+        "required": ["missing"]
+      }
+    },
+    {
+      "name": "save_eda_skill_artifacts",
+      "description": "Persist full and LLM-compressed EDA artifacts to disk.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "object"
+          },
+          "output_dir": {
+            "type": "string"
+          }
+        },
+        "required": ["result", "output_dir"]
+      }
+    },
+    {
+      "name": "run_eda_skill",
+      "description": "Execute the full eda_skill runtime on a normalized payload.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "A DataFrame-like input, CSV path, list of records, or record dictionary."
+          },
+          "intent": {
+            "type": "string"
+          },
+          "target": {
+            "description": "Optional supervised target."
+          },
+          "problem_type": {
+            "type": "string",
+            "enum": ["classification", "regression", "clustering", "profiling"]
+          },
+          "analysis_depth": {
+            "type": "string",
+            "enum": ["light", "standard", "deep"]
+          }
+        },
+        "required": ["data", "intent"]
+      }
+    },
+    {
+      "name": "run_eda_skill_from_state",
+      "description": "Execute eda_skill from the current project state format and write results back into state.",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "object"
+          },
+          "save_artifacts": {
+            "type": "boolean"
+          }
+        },
+        "required": ["state"]
+      }
+    }
+  ]
+}

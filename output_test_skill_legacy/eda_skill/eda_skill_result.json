@@ -1,0 +1,213 @@
+{
+  "status": "success",
+  "meta": {
+    "rows": 4,
+    "cols": 3,
+    "numeric_cols": 3,
+    "categorical_cols": 0,
+    "datetime_cols": 0,
+    "duplicate_rows": 0
+  },
+  "schema": {
+    "amount": {
+      "dtype": "int64",
+      "n_unique": 4,
+      "semantic_type": "numeric",
+      "nullable": false
+    },
+    "score": {
+      "dtype": "float64",
+      "n_unique": 4,
+      "semantic_type": "numeric",
+      "nullable": false
+    },
+    "label": {
+      "dtype": "int64",
+      "n_unique": 2,
+      "semantic_type": "numeric",
+      "nullable": false
+    }
+  },
+  "missing": {
+    "amount": {
+      "missing_rate": 0.0,
+      "missing_flag": "low"
+    },
+    "score": {
+      "missing_rate": 0.0,
+      "missing_flag": "low"
+    },
+    "label": {
+      "missing_rate": 0.0,
+      "missing_flag": "low"
+    }
+  },
+  "distribution": {
+    "amount": {
+      "mean": 25.0,
+      "std": 12.909944487358056,
+      "skew": 0.0,
+      "kurtosis": -1.1999999999999993
+    },
+    "score": {
+      "mean": 0.5750000000000001,
+      "std": 0.3304037933599835,
+      "skew": -0.22872775858729796,
+      "kurtosis": -3.869005302721286
+    },
+    "label": {
+      "mean": 0.5,
+      "std": 0.5773502691896257,
+      "skew": 0.0,
+      "kurtosis": -6.0
+    }
+  },
+  "outliers": {
+    "amount": {
+      "outlier_ratio": 0.0
+    },
+    "score": {
+      "outlier_ratio": 0.0
+    },
+    "label": {
+      "outlier_ratio": 0.0
+    }
+  },
+  "target": {
+    "target_meta": {
+      "type": "column",
+      "name": "label"
+    },
+    "target_name": "label",
+    "target_type": "classification",
+    "class_distribution": {
+      "0": 0.5,
+      "1": 0.5
+    },
+    "imbalance_flag": "low"
+  },
+  "correlation": {
+    "pairwise_correlation": {
+      "amount": {
+        "amount": 1.0,
+        "score": 0.9768308314557047,
+        "label": 0.8944271909999159
+      },
+      "score": {
+        "amount": 0.9768308314557047,
+        "score": 1.0,
+        "label": 0.9610744623271418
+      },
+      "label": {
+        "amount": 0.8944271909999159,
+        "score": 0.9610744623271418,
+        "label": 1.0
+      }
+    },
+    "high_correlation_pairs": [
+      {
+        "feature_1": "amount",
+        "feature_2": "score",
+        "correlation": 0.9768308314557047
+      },
+      {
+        "feature_1": "amount",
+        "feature_2": "label",
+        "correlation": 0.8944271909999159
+      },
+      {
+        "feature_1": "score",
+        "feature_2": "label",
+        "correlation": 0.9610744623271418
+      }
+    ],
+    "multicollinearity_groups": [
+      [
+        "label",
+        "score",
+        "amount"
+      ]
+    ],
+    "feature_target_correlation": {
+      "amount": 0.8944271909999159,
+      "score": 0.9610744623271418
+    },
+    "top_features": [
+      {
+        "feature": "score",
+        "correlation": 0.9610744623271418
+      },
+      {
+        "feature": "amount",
+        "correlation": 0.8944271909999159
+      }
+    ]
+  },
+  "insights": [],
+  "recommendations": [],
+  "eda_for_llm": {
+    "meta": {
+      "rows": 4,
+      "cols": 3,
+      "numeric_cols": 3,
+      "categorical_cols": 0,
+      "datetime_cols": 0,
+      "duplicate_rows": 0
+    },
+    "features": {
+      "amount": {
+        "type": "int64",
+        "mean": 25.0,
+        "std": 12.91,
+        "skew": 0.0,
+        "kurtosis": -1.2,
+        "missing": 0.0
+      },
+      "score": {
+        "type": "float64",
+        "mean": 0.575,
+        "std": 0.33,
+        "skew": -0.229,
+        "kurtosis": -3.869,
+        "missing": 0.0
+      },
+      "label": {
+        "type": "int64",
+        "mean": 0.5,
+        "std": 0.577,
+        "skew": 0.0,
+        "kurtosis": -6.0,
+        "missing": 0.0
+      }
+    },
+    "insights": [],
+    "warnings": []
+  },
+  "kg_candidates": {
+    "nodes": [],
+    "relations": [
+      {
+        "source": "amount",
+        "target": "TARGET",
+        "type": "correlated_with",
+        "strength": 0.8944271909999159,
+        "evidence": "feature_target_correlation"
+      },
+      {
+        "source": "score",
+        "target": "TARGET",
+        "type": "correlated_with",
+        "strength": 0.9610744623271418,
+        "evidence": "feature_target_correlation"
+      }
+    ],
+    "important_features": [
+      "score",
+      "amount"
+    ],
+    "graph_notes": []
+  },
+  "rag_queries": [],
+  "confidence_notes": [],
+  "skipped_modules": []
+}

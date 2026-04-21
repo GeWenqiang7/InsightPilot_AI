@@ -15,7 +15,7 @@
 '''
 from src.tools.eda_tool import run as eda_run
 from src.tools.fe_tool import run as fe_run
-from src.eda.build_targets import analyze_target
+from src.skills.eda_skill.analyzers.target import analyze_target
 
 
 class DataAnalysisAgent:
