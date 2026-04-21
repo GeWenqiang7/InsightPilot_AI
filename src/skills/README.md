@@ -7,7 +7,9 @@ This package contains reusable skills that can be invoked by the current project
 - `eda_skill`: exploratory data analysis for tabular datasets
 - `fe_skill`: feature engineering planning and execution
 - `model_skill`: model selection, training, and evaluation orchestration
-- `report_skill`: reporting and delivery planning for downstream artifacts
+- `advisor_skill`: strategy generation and constraint optimization for decision support
+- `evaluate_skill`: post-model risk review, gate decision, and improvement actions
+- `report_skill`: final cross-stage synthesis and report generation
 
 Each skill should follow the same pattern:
 

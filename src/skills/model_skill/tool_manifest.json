@@ -1,78 +1,12 @@
 {
   "skill_name": "model_skill",
   "version": "0.2.0",
-  "entrypoints": {
-    "runtime": "src.skills.model_skill.scripts.run_model_skill:run_model_skill",
-    "project_adapter": "src.skills.model_skill.adapters:run_model_skill_from_state"
-  },
+  "status": "active",
   "tools": [
     {
-      "name": "validate_payload",
-      "description": "Validate the model skill payload and normalize required fields.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "payload": {
-            "type": "object"
-          }
-        },
-        "required": ["payload"]
-      }
-    },
-    {
-      "name": "build_model_plan",
-      "description": "Build a placeholder modeling plan from FE output and task context.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "payload": {
-            "type": "object"
-          }
-        },
-        "required": ["payload"]
-      }
-    },
-    {
-      "name": "save_model_skill_artifacts",
-      "description": "Persist model skill output artifacts to disk.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "object"
-          },
-          "output_dir": {
-            "type": "string"
-          }
-        },
-        "required": ["result", "output_dir"]
-      }
-    },
-    {
-      "name": "run_model_skill",
-      "description": "Execute the model skill runtime on a normalized payload.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "payload": {
-            "type": "object"
-          }
-        },
-        "required": ["payload"]
-      }
-    },
-    {
-      "name": "run_model_skill_from_state",
-      "description": "Execute model skill from the current project state and write results back into state.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "state": {
-            "type": "object"
-          }
-        },
-        "required": ["state"]
-      }
+      "name": "run_model",
+      "entrypoint": "src.tools.model_tool.invoke",
+      "description": "Generate model strategy and evaluation focus from FE + EDA artifacts."
     }
   ]
 }

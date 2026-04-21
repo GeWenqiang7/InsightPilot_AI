@@ -1,78 +1,12 @@
 {
   "skill_name": "report_skill",
-  "version": "0.2.0",
-  "entrypoints": {
-    "runtime": "src.skills.report_skill.scripts.run_report_skill:run_report_skill",
-    "project_adapter": "src.skills.report_skill.adapters:run_report_skill_from_state"
-  },
+  "version": "0.1.0",
+  "status": "active",
   "tools": [
     {
-      "name": "validate_payload",
-      "description": "Validate the report skill payload and normalize required fields.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "payload": {
-            "type": "object"
-          }
-        },
-        "required": ["payload"]
-      }
-    },
-    {
-      "name": "build_report_plan",
-      "description": "Build a placeholder reporting plan from upstream analysis outputs.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "payload": {
-            "type": "object"
-          }
-        },
-        "required": ["payload"]
-      }
-    },
-    {
-      "name": "save_report_skill_artifacts",
-      "description": "Persist report skill output artifacts to disk.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "object"
-          },
-          "output_dir": {
-            "type": "string"
-          }
-        },
-        "required": ["result", "output_dir"]
-      }
-    },
-    {
-      "name": "run_report_skill",
-      "description": "Execute the report skill runtime on a normalized payload.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "payload": {
-            "type": "object"
-          }
-        },
-        "required": ["payload"]
-      }
-    },
-    {
-      "name": "run_report_skill_from_state",
-      "description": "Execute report skill from the current project state and write results back into state.",
-      "parameters_schema": {
-        "type": "object",
-        "properties": {
-          "state": {
-            "type": "object"
-          }
-        },
-        "required": ["state"]
-      }
+      "name": "run_report",
+      "entrypoint": "src.tools.report_tool.invoke",
+      "description": "Compose final analysis report from EDA/FE/Model/Evaluate artifacts."
     }
   ]
 }

@@ -1,6 +1,19 @@
 # Report Skill
 
-`report_skill` is the shared reporting skill package.
+`report_skill` is the **final synthesis and output layer** and the shared reporting skill package.
+
+It aggregates `eda_result`, `fe_plan`, `model_result`, and `evaluation_result` to generate:
+
+- executive summary
+- key findings by stage
+- prioritized action plan
+- requirement alignment to initial user query/intent
+- visualization plan (chart-level specs)
+- report-level RAG/KG hooks
+- markdown report artifact
+- compact `report_for_llm`
+
+If `advisor_result` exists, report will integrate advisor scenarios/constraints into the final output.
 
 ## Main Entry Points
 
@@ -10,10 +23,11 @@
 
 ## Current Scope
 
-This package currently provides a standard skeleton:
+This package currently provides:
 
-- callable tools registry
 - direct runtime entrypoint
 - project-state adapter
-- examples and reference documents
-- tool manifest for future function-calling integration
+- report composition and markdown artifact generation
+- visualization planning and requirement alignment
+- RAG/KG integration hooks
+- tool manifest for function-calling integration

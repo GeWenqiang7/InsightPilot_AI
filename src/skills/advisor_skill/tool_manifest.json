@@ -1,0 +1,12 @@
+{
+  "skill_name": "advisor_skill",
+  "version": "0.1.0",
+  "status": "active",
+  "tools": [
+    {
+      "name": "run_advisor",
+      "entrypoint": "src.tools.advisor_tool.invoke",
+      "description": "Generate strategy options and optimize constraints from model+evaluation outputs."
+    }
+  ]
+}

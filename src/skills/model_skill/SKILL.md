@@ -1,15 +1,44 @@
 ---
 name: model_skill
-description: Semi-autonomous modeling skill for selecting model strategies, preparing training plans, and structuring evaluation guidance.
+description: Semi-autonomous model planning skill that consumes FE + EDA artifacts and returns ranked model strategy and evaluation priorities.
 ---
 
 # Model Skill
 
-Use this skill when an agent needs a reusable modeling workflow after feature engineering and before reporting.
+Use this skill after feature planning to transform upstream artifacts into a practical modeling strategy.
 
-This skill is designed to:
+## Inputs
 
-- consume FE output and task context
-- structure model family and evaluation recommendations
-- expose a unified tool surface for later training orchestration
-- remain portable across projects and agent frameworks
+Required:
+
+- `fe_plan`
+- `eda_result`
+
+Optional:
+
+- `problem_type`
+- `target`
+- `model_candidates`
+- `constraints`
+
+## Outputs
+
+- `risk_flags`
+- `model_candidates_ranked`
+- `training_strategy`
+- `evaluation_focus`
+- `recommendations`
+- `model_for_llm`
+
+## Capability Boundaries
+
+This skill **does**:
+
+- prioritize model families under current data risks
+- define evaluation metrics/checks based on task and risk profile
+- generate model-ready context for downstream LLM/agent components
+
+This skill **does not**:
+
+- train final production models
+- replace dedicated evaluation/reporting skills
