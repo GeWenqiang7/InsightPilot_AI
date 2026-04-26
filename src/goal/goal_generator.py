@@ -157,10 +157,6 @@ Retrieved evidence items:
 {json.dumps(knowledge_context.get("evidence_items", []), ensure_ascii=False, indent=2)}
 
 ========================
-[KG CONTEXT]
-{json.dumps(kg_context or {}, ensure_ascii=False, indent=2)}
-
-========================
 TASK:
 
 1. Generate 3-5 analysis goals
