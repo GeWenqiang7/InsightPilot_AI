@@ -10,8 +10,6 @@ Goal Manager（增强版）
 ✔ JSON结构输出
 """
 
-from panel import state
-
 from src.goal.goal_generator import generate_goals
 from src.goal.goal_schema import Goal
 from typing import List
@@ -71,7 +69,8 @@ def handle_goal_generation(state, llm_client):
         user_query=full_query,
         schema_summary=schema,
         llm_client=llm_client,
-        knowledge_manager=km
+        knowledge_manager=km,
+        kg_context=state.get("kg_context", {}),
     )
 
 
