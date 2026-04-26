@@ -26,6 +26,9 @@
         <label>初始需求</label>
         <textarea id="userQuery" rows="3" placeholder="例如：我想预测用户流失并制定干预策略"></textarea>
       </div>
+      <div class="row">
+        <label><input id="useRealLlm" type="checkbox" checked /> 使用真实大模型（需要配置 OPENAI_API_KEY）</label>
+      </div>
       <button onclick="createSession()">创建会话</button>
       <span id="sessionInfo"></span>
     </div>
@@ -49,20 +52,34 @@
       <pre id="output">{}</pre>
     </div>
 
+    <div class="card">
+      <h3>Rerank 调试面板（Top-K 前后对比）</h3>
+      <pre id="rerankPanel">{
+  "pre_rerank_topk": [],
+  "post_rerank_topk": []
+}</pre>
+    </div>
+
     <script>
       let sessionId = null;
 
       function show(data) {
         document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+        const debug = (data.rag_context && data.rag_context.retrieval_debug) || {
+          pre_rerank_topk: [],
+          post_rerank_topk: []
+        };
+        document.getElementById("rerankPanel").textContent = JSON.stringify(debug, null, 2);
       }
 
       async function createSession() {
         const dataPath = document.getElementById("dataPath").value.trim();
         const userQuery = document.getElementById("userQuery").value.trim();
+        const useRealLlm = document.getElementById("useRealLlm").checked;
         const res = await fetch("/sessions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data_path: dataPath, user_query: userQuery, use_real_llm: false })
+          body: JSON.stringify({ data_path: dataPath, user_query: userQuery, use_real_llm: useRealLlm })
         });
         const data = await res.json();
         if (!res.ok) return show(data);
@@ -101,4 +118,3 @@
     </script>
   </body>
   </html>
-

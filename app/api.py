@@ -23,7 +23,11 @@ from src.goal.goal_manager import (
     select_goal,
 )
 from src.knowledge.knowledge_manager import KnowledgeManager
-from app.goal_ui_utils import MockInteractiveLLM, load_csv_schema
+from app.goal_ui_utils import (
+    MockInteractiveLLM,
+    build_kg_context_from_query,
+    load_csv_schema,
+)
 
 
 @dataclass
@@ -35,7 +39,7 @@ class SessionRuntime:
 class CreateSessionRequest(BaseModel):
     data_path: str
     user_query: str
-    use_real_llm: bool = False
+    use_real_llm: bool = True
 
 
 class RefineRequest(BaseModel):
@@ -53,9 +57,15 @@ SESSION_STORE: Dict[str, SessionRuntime] = {}
 def _resolve_llm(use_real_llm: bool):
     if not use_real_llm:
         return MockInteractiveLLM()
-    from src.llm.client import LLMClient
+    try:
+        from src.llm.client import LLMClient
 
-    return LLMClient()
+        return LLMClient()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="failed to init real LLM client. Check OPENAI_API_KEY and openai package. error={0}".format(str(exc)),
+        )
 
 
 def _session_or_404(session_id: str) -> SessionRuntime:
@@ -88,6 +98,8 @@ def create_session(req: CreateSessionRequest) -> Dict[str, Any]:
     state = init_goal_state(df=None, user_query=req.user_query, knowledge_manager=km)
     state["schema"] = schema_summary
     state["data_path"] = req.data_path
+    state["rag_context"] = km.get_knowledge(req.user_query, top_k=5)
+    state["kg_context"] = build_kg_context_from_query(req.user_query, km, top_k=5)
 
     session_id = uuid.uuid4().hex
     SESSION_STORE[session_id] = SessionRuntime(state=state, llm_client=llm_client)
@@ -96,6 +108,8 @@ def create_session(req: CreateSessionRequest) -> Dict[str, Any]:
         "session_id": session_id,
         "rows": rows,
         "columns": columns,
+        "rag_context": state["rag_context"],
+        "kg_context": state["kg_context"],
         "message": "session created",
     }
 
@@ -103,17 +117,37 @@ def create_session(req: CreateSessionRequest) -> Dict[str, Any]:
 @app.post("/sessions/{session_id}/generate")
 def generate_goals(session_id: str) -> Dict[str, Any]:
     runtime = _session_or_404(session_id)
+    full_query = "\n".join([item.get("content", "") for item in runtime.state.get("conversation_history", [])]).strip()
+    km = runtime.state.get("knowledge_manager")
+    if km and full_query:
+        runtime.state["rag_context"] = km.get_knowledge(full_query, top_k=5)
+        runtime.state["kg_context"] = build_kg_context_from_query(full_query, km, top_k=5)
     runtime.state = handle_goal_generation(runtime.state, runtime.llm_client)
     goals = display_goals(runtime.state)
-    return {"session_id": session_id, "goals": goals}
+    return {
+        "session_id": session_id,
+        "goals": goals,
+        "rag_context": runtime.state.get("rag_context", {}),
+        "kg_context": runtime.state.get("kg_context", {}),
+    }
 
 
 @app.post("/sessions/{session_id}/refine")
 def refine_goals(session_id: str, req: RefineRequest) -> Dict[str, Any]:
     runtime = _session_or_404(session_id)
     runtime.state = regenerate_goals(runtime.state, req.new_query, runtime.llm_client)
+    full_query = "\n".join([item.get("content", "") for item in runtime.state.get("conversation_history", [])]).strip()
+    km = runtime.state.get("knowledge_manager")
+    if km and full_query:
+        runtime.state["rag_context"] = km.get_knowledge(full_query, top_k=5)
+        runtime.state["kg_context"] = build_kg_context_from_query(full_query, km, top_k=5)
     goals = display_goals(runtime.state)
-    return {"session_id": session_id, "goals": goals}
+    return {
+        "session_id": session_id,
+        "goals": goals,
+        "rag_context": runtime.state.get("rag_context", {}),
+        "kg_context": runtime.state.get("kg_context", {}),
+    }
 
 
 @app.post("/sessions/{session_id}/select")
@@ -132,7 +166,8 @@ def get_session_state(session_id: str) -> Dict[str, Any]:
         "session_id": session_id,
         "data_path": runtime.state.get("data_path"),
         "conversation_history": runtime.state.get("conversation_history", []),
+        "rag_context": runtime.state.get("rag_context", {}),
+        "kg_context": runtime.state.get("kg_context", {}),
         "candidate_goals": [g.to_dict() for g in runtime.state.get("candidate_goals", [])],
         "selected_goal": selected.to_dict() if selected else None,
     }
-

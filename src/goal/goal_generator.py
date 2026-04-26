@@ -125,7 +125,8 @@ def generate_goals(
     user_query,
     schema_summary,
     llm_client,
-    knowledge_manager
+    knowledge_manager,
+    kg_context=None,
 ) -> List[Goal]:
 
     # 🔥 Step 1: RAG知识
@@ -165,6 +166,7 @@ TASK:
    - Provide reasoning
    - Include evidence_topics based on retrieved topics
    - Include uncertainty_notes when retrieval evidence is weak
+   - Use KG context to avoid duplicate goals and improve consistency
 
 3. Evaluate each goal based on:
    - Business value

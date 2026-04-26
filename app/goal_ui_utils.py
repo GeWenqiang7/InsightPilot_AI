@@ -1,6 +1,6 @@
 import csv
 import os
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 def _infer_type(values: List[str]) -> str:
@@ -101,3 +101,50 @@ class MockInteractiveLLM:
 ]
 """
 
+
+def build_kg_context_from_query(
+    query: str,
+    knowledge_manager: Any,
+    top_k: int = 5,
+) -> Dict[str, Any]:
+    """
+    轻量 KG 上下文构建：
+    - 基于 RAG 检索结果生成 query-topic 图结构
+    - 用于 goal 生成 prompt 的结构化补充
+    """
+    knowledge_context = knowledge_manager.get_knowledge(query, top_k=top_k)
+    evidence_items = knowledge_context.get("evidence_items", [])
+    topics = knowledge_context.get("topics", [])
+
+    nodes = [{"id": "USER_QUERY", "type": "query"}]
+    edges = []
+    for item in evidence_items:
+        topic = item.get("topic")
+        if not topic:
+            continue
+        nodes.append({"id": topic, "type": "topic"})
+        edges.append(
+            {
+                "source": "USER_QUERY",
+                "target": topic,
+                "relation": "supported_by_retrieval",
+                "weight": item.get("score", 0.0),
+                "chunk_id": item.get("chunk_id"),
+            }
+        )
+
+    # 去重
+    seen = set()
+    dedup_nodes = []
+    for n in nodes:
+        node_id = n["id"]
+        if node_id in seen:
+            continue
+        seen.add(node_id)
+        dedup_nodes.append(n)
+
+    return {
+        "graph": {"nodes": dedup_nodes, "edges": edges},
+        "topics": topics,
+        "retrieval_confidence": knowledge_context.get("retrieval_confidence", 0.0),
+    }

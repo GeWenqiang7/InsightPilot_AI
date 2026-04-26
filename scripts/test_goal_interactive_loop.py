@@ -17,7 +17,6 @@ import json
 import os
 import sys
 import tempfile
-import pandas as pd
 from typing import Any, Dict, List, Tuple
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -60,10 +59,8 @@ def _infer_type(values: List[str]) -> str:
 
 
 def load_csv_schema(data_path: str, sample_size: int = 200) -> Tuple[List[Dict[str, str]], int]:
-    
-    df = pd.read_csv(data_path)
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-
+    if not data_path:
+        raise ValueError("data_path is required")
     if not os.path.exists(data_path):
         raise FileNotFoundError("Data file not found: {0}".format(data_path))
     if not data_path.lower().endswith(".csv"):
@@ -278,19 +275,19 @@ def demo_run(data_path: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Interactive goal-loop test runner")
 
+    # 兼容两种写法：--data-path / --data_path
     parser.add_argument(
-        "--data_path",
+        "--data-path", "--data_path",
+        dest="data_path",
         type=str,
-        default=None,   # ❗改这里
+        default="",
         help="CSV data path for schema extraction",
     )
-
     parser.add_argument(
         "--use-real-llm",
         action="store_true",
         help="use real LLM client instead of mock"
     )
-
     parser.add_argument(
         "--demo",
         action="store_true",
@@ -300,26 +297,21 @@ def main() -> None:
     args = parser.parse_args()
     data_path = args.data_path
 
-    if not data_path:
-        print("\n⚠️ No data_path provided.")
-        user_input = input("👉 Please enter your data file path (or press Enter to use default): ")
-
-        if user_input.strip():
-            data_path = user_input.strip()
+    # 非 demo 模式下允许用户输入路径；demo 模式可为空（会自动造临时CSV）
+    if not data_path and not args.demo:
+        print("\n⚠️ No data path provided.")
+        user_input = input("👉 Please enter your data file path (or press Enter to cancel): ").strip()
+        if user_input:
+            data_path = user_input
         else:
-            data_path = "data/raw/user_personalized_features.csv"  # ✅ 默认你的这个数据
-            print(f"✅ Using default dataset: {data_path}")
+            raise ValueError("data_path is required for interactive mode.")
 
-    # 🔥 文件存在性检查（很关键）
-    if not os.path.exists(data_path):
-        raise FileNotFoundError(f"❌ Data file not found: {data_path}")
-
-    # 🔥 运行模式
     if args.demo:
         demo_run(data_path)
     else:
+        if not os.path.exists(data_path):
+            raise FileNotFoundError(f"❌ Data file not found: {data_path}")
         interactive_loop(data_path, use_real_llm=args.use_real_llm)
-
 
 if __name__ == "__main__":
     main()
